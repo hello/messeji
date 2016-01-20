@@ -1,6 +1,11 @@
-(defproject messeji "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
-  :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.7.0"]])
+(defproject com.hello/messeji "0.1.0-SNAPSHOT"
+:description "Async messaging service for communicating with Sense"
+:url "https://github.com/hello/messeji"
+:dependencies [[org.clojure/clojure "1.7.0"]
+               [aleph "0.4.1-beta2"]
+               [compojure "1.4.0"]
+               [com.hello.suripu/suripu-service "0.6.65"]]
+:plugins [[s3-wagon-private "1.2.0"]]
+:repositories [["private" {:url "s3p://hello-maven/release/"
+                           :username :env
+                           :passphrase :env}]])
