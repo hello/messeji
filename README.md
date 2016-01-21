@@ -16,3 +16,12 @@ export LEIN_PASSPHRASE=$AWS_SECRET_KEY
 ```bash
 lein run -m com.hello.messeji.server
 ```
+
+
+## Protocol buffers
+The protobuf can be found in our [proto repository](https://github.com/hello/proto/tree/master/messeji).
+
+To compile the protobuf files (after they've changed):
+```bash
+protoc -I messeji/  --java_out=/path/to/messeji/src/main/java/ messeji/*
+```
