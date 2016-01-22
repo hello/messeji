@@ -1,0 +1,3 @@
+{:key-store {:table "key_store"
+             :endpoint "http://localhost:7777"}
+ :http {:port 10000}}
