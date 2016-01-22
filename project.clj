@@ -9,6 +9,8 @@
   :source-paths ["src" "src/main/clojure"]
   :java-source-paths ["src/main/java"]  ; Java source is stored separately.
   :test-paths ["test" "src/test/clojure"]
+  :main com.hello.messeji.server
+  :aot [com.hello.messeji.server]
   :repositories [["private" {:url "s3p://hello-maven/release/"
                              :username :env
                              :passphrase :env}]])
