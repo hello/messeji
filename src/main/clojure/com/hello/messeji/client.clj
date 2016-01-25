@@ -43,8 +43,7 @@
   [batch-message]
   (->> batch-message
     .getMessageList
-    (map #(.getMessageId %))
-    seq))
+    (map #(.getMessageId %))))
 
 (defn start-sense
   ^java.io.Closeable [host sense-id]
@@ -53,8 +52,7 @@
       (loop [message-ids []]
         (when @running
           (let [batch-message (receive-messages host sense-id message-ids)
-                message-ids (batch-message-ids batch-message)
-                ]
+                message-ids (batch-message-ids batch-message)]
             (when (seq message-ids) (prn message-ids))
             (recur message-ids)))))
     (reify java.io.Closeable

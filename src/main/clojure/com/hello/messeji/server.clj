@@ -4,6 +4,7 @@
     [aleph.http :as http]
     [byte-streams :as bs]
     [clojure.edn :as edn]
+    [com.hello.messeji.db :as db]
     [com.hello.messeji.db.in-mem :as mem]
     [compojure.core :as compojure :refer [GET POST]]
     [manifold.deferred :as deferred]
@@ -24,10 +25,12 @@
 
 #_"
 TODO
-protobuf wrapper for
+- protobuf wrapper for
   - unparseable request (400)
   - boilerplate around parsing/serializing protobuf message
   - content type
+- assorted line-level code TODOs
+- unit and integration tests
 "
 
 ;; TODO config
@@ -49,8 +52,10 @@ protobuf wrapper for
    :status 200})
 
 (defn- receive-messages
-  [connections-atom timeout sense-id]
-  (if-let [unacked-messages (seq (mem/unacked-messages sense-id max-message-age-millis))]
+  [connections-atom message-store timeout sense-id]
+  (if-let [unacked-messages (seq (db/unacked-messages
+                                   message-store sense-id
+                                   max-message-age-millis))]
     (batch-message-response unacked-messages)
     (let [deferred-response (deferred/deferred)]
       (swap! connections-atom assoc sense-id deferred-response)
@@ -72,15 +77,15 @@ protobuf wrapper for
   (seq (.getMessageReadIdList receive-message-request)))
 
 (defn handle-receive
-  [connections key-store timeout request]
+  [connections key-store message-store timeout request]
   (let [sense-id (request-sense-id request)
         receive-message-request (Messeji$ReceiveMessageRequest/parseFrom
                                   (:body request))
         message-ids (acked-message-ids receive-message-request)]
     (if (= sense-id (.getSenseId receive-message-request))
       (do
-        (mem/acknowledge! message-ids)
-        (receive-messages connections timeout sense-id))
+        (db/acknowledge message-store message-ids)
+        (receive-messages connections message-store timeout sense-id))
       response-400)))
 
 (defn- send-messages!
@@ -90,27 +95,27 @@ protobuf wrapper for
     (when-let [delivery (deferred/success!
                           connection-deferred
                           (batch-message-response messages))]
-      (mem/mark-sent! messages)
+      ; TODO mark sent
       delivery)))
 
 (defn handle-send
-  [connections-atom request]
+  [connections-atom message-store request]
   ;; TODO 400 if no sense id
   (let [sense-id (-> request :headers (get HelloHttpHeader/SENSE_ID))
         message (Messeji$Message/parseFrom (:body request))
-        message-with-id (mem/create-message! sense-id message)]
+        message-with-id (db/create-message message-store sense-id message)]
     (send-messages! (get @connections-atom sense-id) [message-with-id])
     {:status 200
      :body "okay"}))
 
 (defn handler
-  [connections key-store timeout]
+  [connections key-store message-store timeout]
   (let [routes
         (compojure/routes
           (POST "/receive" request
-            (handle-receive connections key-store timeout request))
+            (handle-receive connections key-store message-store timeout request))
           (POST "/send" request
-            (handle-send connections request)))]
+            (handle-send connections message-store request)))]
     (-> routes
        wrap-content-type)))
 
@@ -130,10 +135,10 @@ protobuf wrapper for
                     (.getBytes "1234567891234567") ; TODO remove default key
                     (int 120)) ; 2 minutes for cache
         timeout (get-in config-map [:http :receive-timeout])
+        message-store (mem/mk-message-store)
         server (http/start-server
-                 (handler connections key-store timeout)
+                 (handler connections key-store message-store timeout)
                  {:port (get-in config-map [:http :port])})]
-    (prn timeout)
     {:connections connections
      :server server
      :ddb-client ddb-client}))
