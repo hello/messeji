@@ -33,9 +33,6 @@ TODO
 - unit and integration tests
 "
 
-;; TODO config
-(def max-message-age-millis 10000)
-
 (defn- batch-message
   [messages]
   (let [builder (Messeji$BatchMessage/newBuilder)]
@@ -53,9 +50,7 @@ TODO
 
 (defn- receive-messages
   [connections-atom message-store timeout sense-id]
-  (if-let [unacked-messages (seq (db/unacked-messages
-                                   message-store sense-id
-                                   max-message-age-millis))]
+  (if-let [unacked-messages (seq (db/unacked-messages message-store sense-id))]
     (batch-message-response unacked-messages)
     (let [deferred-response (deferred/deferred)]
       (swap! connections-atom assoc sense-id deferred-response)
@@ -135,7 +130,7 @@ TODO
                     (.getBytes "1234567891234567") ; TODO remove default key
                     (int 120)) ; 2 minutes for cache
         timeout (get-in config-map [:http :receive-timeout])
-        message-store (mem/mk-message-store)
+        message-store (mem/mk-message-store (:max-message-age-millis config-map))
         server (http/start-server
                  (handler connections key-store message-store timeout)
                  {:port (get-in config-map [:http :port])})]

@@ -27,7 +27,7 @@
   (reduce #(assoc-in %1 [%2 :acknowledged?] true) db-map message-ids))
 
 (defrecord InMemoryMessageStore
-  [database-ref latest-id-ref]
+  [database-ref latest-id-ref max-message-age-millis]
 
   db/MessageStore
   (db/create-message
@@ -39,11 +39,12 @@
         message-with-id)))
 
   (db/unacked-messages
-    [_ sense-id timeout-millis]
+    [_ sense-id]
     (->> @database-ref
       vals
       (filter #(and (= (:sense-id %) sense-id)
-                    (> timeout-millis (- (System/currentTimeMillis) (:timestamp %)))
+                    (> max-message-age-millis
+                      (- (System/currentTimeMillis) (:timestamp %)))
                     (not (:acknowledged? %))))
       (map :message)))
 
@@ -53,5 +54,5 @@
       (alter database-ref ack-message-ids message-ids))))
 
 (defn mk-message-store
-  []
-  (->InMemoryMessageStore (ref {}) (ref 0)))
+  [max-message-age-millis]
+  (->InMemoryMessageStore (ref {}) (ref 0) max-message-age-millis))

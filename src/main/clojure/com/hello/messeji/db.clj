@@ -7,7 +7,7 @@
     "Create message in database and return the created message.")
 
   (unacked-messages
-    [this sense-id timeout-millis]
+    [this sense-id]
     "Retrieve all unacked messages for sense-id that are younger than timeout.")
 
   (acknowledge
