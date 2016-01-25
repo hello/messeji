@@ -8,477 +8,6 @@ public final class Messeji {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
   }
-  public interface ReadReceiptOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:ReadReceipt)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>repeated int64 message_id = 1;</code>
-     */
-    java.util.List<java.lang.Long> getMessageIdList();
-    /**
-     * <code>repeated int64 message_id = 1;</code>
-     */
-    int getMessageIdCount();
-    /**
-     * <code>repeated int64 message_id = 1;</code>
-     */
-    long getMessageId(int index);
-  }
-  /**
-   * Protobuf type {@code ReadReceipt}
-   */
-  public static final class ReadReceipt extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:ReadReceipt)
-      ReadReceiptOrBuilder {
-    // Use ReadReceipt.newBuilder() to construct.
-    private ReadReceipt(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-      this.unknownFields = builder.getUnknownFields();
-    }
-    private ReadReceipt(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final ReadReceipt defaultInstance;
-    public static ReadReceipt getDefaultInstance() {
-      return defaultInstance;
-    }
-
-    public ReadReceipt getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
-      return this.unknownFields;
-    }
-    private ReadReceipt(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-            case 8: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                messageId_ = new java.util.ArrayList<java.lang.Long>();
-                mutable_bitField0_ |= 0x00000001;
-              }
-              messageId_.add(input.readInt64());
-              break;
-            }
-            case 10: {
-              int length = input.readRawVarint32();
-              int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
-                messageId_ = new java.util.ArrayList<java.lang.Long>();
-                mutable_bitField0_ |= 0x00000001;
-              }
-              while (input.getBytesUntilLimit() > 0) {
-                messageId_.add(input.readInt64());
-              }
-              input.popLimit(limit);
-              break;
-            }
-          }
-        }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
-      } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-          messageId_ = java.util.Collections.unmodifiableList(messageId_);
-        }
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.hello.messeji.api.Messeji.internal_static_ReadReceipt_descriptor;
-    }
-
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return com.hello.messeji.api.Messeji.internal_static_ReadReceipt_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              com.hello.messeji.api.Messeji.ReadReceipt.class, com.hello.messeji.api.Messeji.ReadReceipt.Builder.class);
-    }
-
-    public static com.google.protobuf.Parser<ReadReceipt> PARSER =
-        new com.google.protobuf.AbstractParser<ReadReceipt>() {
-      public ReadReceipt parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new ReadReceipt(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ReadReceipt> getParserForType() {
-      return PARSER;
-    }
-
-    public static final int MESSAGE_ID_FIELD_NUMBER = 1;
-    private java.util.List<java.lang.Long> messageId_;
-    /**
-     * <code>repeated int64 message_id = 1;</code>
-     */
-    public java.util.List<java.lang.Long>
-        getMessageIdList() {
-      return messageId_;
-    }
-    /**
-     * <code>repeated int64 message_id = 1;</code>
-     */
-    public int getMessageIdCount() {
-      return messageId_.size();
-    }
-    /**
-     * <code>repeated int64 message_id = 1;</code>
-     */
-    public long getMessageId(int index) {
-      return messageId_.get(index);
-    }
-
-    private void initFields() {
-      messageId_ = java.util.Collections.emptyList();
-    }
-    private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      getSerializedSize();
-      for (int i = 0; i < messageId_.size(); i++) {
-        output.writeInt64(1, messageId_.get(i));
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    private int memoizedSerializedSize = -1;
-    public int getSerializedSize() {
-      int size = memoizedSerializedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      {
-        int dataSize = 0;
-        for (int i = 0; i < messageId_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeInt64SizeNoTag(messageId_.get(i));
-        }
-        size += dataSize;
-        size += 1 * getMessageIdList().size();
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
-      return size;
-    }
-
-    private static final long serialVersionUID = 0L;
-    @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
-    }
-
-    public static com.hello.messeji.api.Messeji.ReadReceipt parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.hello.messeji.api.Messeji.ReadReceipt parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.hello.messeji.api.Messeji.ReadReceipt parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static com.hello.messeji.api.Messeji.ReadReceipt parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static com.hello.messeji.api.Messeji.ReadReceipt parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static com.hello.messeji.api.Messeji.ReadReceipt parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-    public static com.hello.messeji.api.Messeji.ReadReceipt parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
-    }
-    public static com.hello.messeji.api.Messeji.ReadReceipt parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
-    }
-    public static com.hello.messeji.api.Messeji.ReadReceipt parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static com.hello.messeji.api.Messeji.ReadReceipt parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-
-    public static Builder newBuilder() { return Builder.create(); }
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.hello.messeji.api.Messeji.ReadReceipt prototype) {
-      return newBuilder().mergeFrom(prototype);
-    }
-    public Builder toBuilder() { return newBuilder(this); }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code ReadReceipt}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:ReadReceipt)
-        com.hello.messeji.api.Messeji.ReadReceiptOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return com.hello.messeji.api.Messeji.internal_static_ReadReceipt_descriptor;
-      }
-
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return com.hello.messeji.api.Messeji.internal_static_ReadReceipt_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                com.hello.messeji.api.Messeji.ReadReceipt.class, com.hello.messeji.api.Messeji.ReadReceipt.Builder.class);
-      }
-
-      // Construct using com.hello.messeji.api.Messeji.ReadReceipt.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-        }
-      }
-      private static Builder create() {
-        return new Builder();
-      }
-
-      public Builder clear() {
-        super.clear();
-        messageId_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return com.hello.messeji.api.Messeji.internal_static_ReadReceipt_descriptor;
-      }
-
-      public com.hello.messeji.api.Messeji.ReadReceipt getDefaultInstanceForType() {
-        return com.hello.messeji.api.Messeji.ReadReceipt.getDefaultInstance();
-      }
-
-      public com.hello.messeji.api.Messeji.ReadReceipt build() {
-        com.hello.messeji.api.Messeji.ReadReceipt result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      public com.hello.messeji.api.Messeji.ReadReceipt buildPartial() {
-        com.hello.messeji.api.Messeji.ReadReceipt result = new com.hello.messeji.api.Messeji.ReadReceipt(this);
-        int from_bitField0_ = bitField0_;
-        if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          messageId_ = java.util.Collections.unmodifiableList(messageId_);
-          bitField0_ = (bitField0_ & ~0x00000001);
-        }
-        result.messageId_ = messageId_;
-        onBuilt();
-        return result;
-      }
-
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof com.hello.messeji.api.Messeji.ReadReceipt) {
-          return mergeFrom((com.hello.messeji.api.Messeji.ReadReceipt)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(com.hello.messeji.api.Messeji.ReadReceipt other) {
-        if (other == com.hello.messeji.api.Messeji.ReadReceipt.getDefaultInstance()) return this;
-        if (!other.messageId_.isEmpty()) {
-          if (messageId_.isEmpty()) {
-            messageId_ = other.messageId_;
-            bitField0_ = (bitField0_ & ~0x00000001);
-          } else {
-            ensureMessageIdIsMutable();
-            messageId_.addAll(other.messageId_);
-          }
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        return this;
-      }
-
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        com.hello.messeji.api.Messeji.ReadReceipt parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (com.hello.messeji.api.Messeji.ReadReceipt) e.getUnfinishedMessage();
-          throw e;
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-      private int bitField0_;
-
-      private java.util.List<java.lang.Long> messageId_ = java.util.Collections.emptyList();
-      private void ensureMessageIdIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          messageId_ = new java.util.ArrayList<java.lang.Long>(messageId_);
-          bitField0_ |= 0x00000001;
-         }
-      }
-      /**
-       * <code>repeated int64 message_id = 1;</code>
-       */
-      public java.util.List<java.lang.Long>
-          getMessageIdList() {
-        return java.util.Collections.unmodifiableList(messageId_);
-      }
-      /**
-       * <code>repeated int64 message_id = 1;</code>
-       */
-      public int getMessageIdCount() {
-        return messageId_.size();
-      }
-      /**
-       * <code>repeated int64 message_id = 1;</code>
-       */
-      public long getMessageId(int index) {
-        return messageId_.get(index);
-      }
-      /**
-       * <code>repeated int64 message_id = 1;</code>
-       */
-      public Builder setMessageId(
-          int index, long value) {
-        ensureMessageIdIsMutable();
-        messageId_.set(index, value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated int64 message_id = 1;</code>
-       */
-      public Builder addMessageId(long value) {
-        ensureMessageIdIsMutable();
-        messageId_.add(value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated int64 message_id = 1;</code>
-       */
-      public Builder addAllMessageId(
-          java.lang.Iterable<? extends java.lang.Long> values) {
-        ensureMessageIdIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, messageId_);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated int64 message_id = 1;</code>
-       */
-      public Builder clearMessageId() {
-        messageId_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:ReadReceipt)
-    }
-
-    static {
-      defaultInstance = new ReadReceipt(true);
-      defaultInstance.initFields();
-    }
-
-    // @@protoc_insertion_point(class_scope:ReadReceipt)
-  }
-
   public interface ReceiveMessageRequestOrBuilder extends
       // @@protoc_insertion_point(interface_extends:ReceiveMessageRequest)
       com.google.protobuf.MessageOrBuilder {
@@ -498,17 +27,17 @@ public final class Messeji {
         getSenseIdBytes();
 
     /**
-     * <code>optional .ReadReceipt read_receipt = 2;</code>
+     * <code>repeated int64 message_read_id = 2;</code>
      */
-    boolean hasReadReceipt();
+    java.util.List<java.lang.Long> getMessageReadIdList();
     /**
-     * <code>optional .ReadReceipt read_receipt = 2;</code>
+     * <code>repeated int64 message_read_id = 2;</code>
      */
-    com.hello.messeji.api.Messeji.ReadReceipt getReadReceipt();
+    int getMessageReadIdCount();
     /**
-     * <code>optional .ReadReceipt read_receipt = 2;</code>
+     * <code>repeated int64 message_read_id = 2;</code>
      */
-    com.hello.messeji.api.Messeji.ReadReceiptOrBuilder getReadReceiptOrBuilder();
+    long getMessageReadId(int index);
   }
   /**
    * Protobuf type {@code ReceiveMessageRequest}
@@ -568,17 +97,25 @@ public final class Messeji {
               senseId_ = bs;
               break;
             }
+            case 16: {
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+                messageReadId_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000002;
+              }
+              messageReadId_.add(input.readInt64());
+              break;
+            }
             case 18: {
-              com.hello.messeji.api.Messeji.ReadReceipt.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000002) == 0x00000002)) {
-                subBuilder = readReceipt_.toBuilder();
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002) && input.getBytesUntilLimit() > 0) {
+                messageReadId_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000002;
               }
-              readReceipt_ = input.readMessage(com.hello.messeji.api.Messeji.ReadReceipt.PARSER, extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom(readReceipt_);
-                readReceipt_ = subBuilder.buildPartial();
+              while (input.getBytesUntilLimit() > 0) {
+                messageReadId_.add(input.readInt64());
               }
-              bitField0_ |= 0x00000002;
+              input.popLimit(limit);
               break;
             }
           }
@@ -589,6 +126,9 @@ public final class Messeji {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e.getMessage()).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+          messageReadId_ = java.util.Collections.unmodifiableList(messageReadId_);
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -663,30 +203,31 @@ public final class Messeji {
       }
     }
 
-    public static final int READ_RECEIPT_FIELD_NUMBER = 2;
-    private com.hello.messeji.api.Messeji.ReadReceipt readReceipt_;
+    public static final int MESSAGE_READ_ID_FIELD_NUMBER = 2;
+    private java.util.List<java.lang.Long> messageReadId_;
     /**
-     * <code>optional .ReadReceipt read_receipt = 2;</code>
+     * <code>repeated int64 message_read_id = 2;</code>
      */
-    public boolean hasReadReceipt() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+    public java.util.List<java.lang.Long>
+        getMessageReadIdList() {
+      return messageReadId_;
     }
     /**
-     * <code>optional .ReadReceipt read_receipt = 2;</code>
+     * <code>repeated int64 message_read_id = 2;</code>
      */
-    public com.hello.messeji.api.Messeji.ReadReceipt getReadReceipt() {
-      return readReceipt_;
+    public int getMessageReadIdCount() {
+      return messageReadId_.size();
     }
     /**
-     * <code>optional .ReadReceipt read_receipt = 2;</code>
+     * <code>repeated int64 message_read_id = 2;</code>
      */
-    public com.hello.messeji.api.Messeji.ReadReceiptOrBuilder getReadReceiptOrBuilder() {
-      return readReceipt_;
+    public long getMessageReadId(int index) {
+      return messageReadId_.get(index);
     }
 
     private void initFields() {
       senseId_ = "";
-      readReceipt_ = com.hello.messeji.api.Messeji.ReadReceipt.getDefaultInstance();
+      messageReadId_ = java.util.Collections.emptyList();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -708,8 +249,8 @@ public final class Messeji {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeBytes(1, getSenseIdBytes());
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeMessage(2, readReceipt_);
+      for (int i = 0; i < messageReadId_.size(); i++) {
+        output.writeInt64(2, messageReadId_.get(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -724,9 +265,14 @@ public final class Messeji {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(1, getSenseIdBytes());
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, readReceipt_);
+      {
+        int dataSize = 0;
+        for (int i = 0; i < messageReadId_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeInt64SizeNoTag(messageReadId_.get(i));
+        }
+        size += dataSize;
+        size += 1 * getMessageReadIdList().size();
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -837,7 +383,6 @@ public final class Messeji {
       }
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-          getReadReceiptFieldBuilder();
         }
       }
       private static Builder create() {
@@ -848,11 +393,7 @@ public final class Messeji {
         super.clear();
         senseId_ = "";
         bitField0_ = (bitField0_ & ~0x00000001);
-        if (readReceiptBuilder_ == null) {
-          readReceipt_ = com.hello.messeji.api.Messeji.ReadReceipt.getDefaultInstance();
-        } else {
-          readReceiptBuilder_.clear();
-        }
+        messageReadId_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
@@ -886,14 +427,11 @@ public final class Messeji {
           to_bitField0_ |= 0x00000001;
         }
         result.senseId_ = senseId_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
+        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+          messageReadId_ = java.util.Collections.unmodifiableList(messageReadId_);
+          bitField0_ = (bitField0_ & ~0x00000002);
         }
-        if (readReceiptBuilder_ == null) {
-          result.readReceipt_ = readReceipt_;
-        } else {
-          result.readReceipt_ = readReceiptBuilder_.build();
-        }
+        result.messageReadId_ = messageReadId_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -915,8 +453,15 @@ public final class Messeji {
           senseId_ = other.senseId_;
           onChanged();
         }
-        if (other.hasReadReceipt()) {
-          mergeReadReceipt(other.getReadReceipt());
+        if (!other.messageReadId_.isEmpty()) {
+          if (messageReadId_.isEmpty()) {
+            messageReadId_ = other.messageReadId_;
+            bitField0_ = (bitField0_ & ~0x00000002);
+          } else {
+            ensureMessageReadIdIsMutable();
+            messageReadId_.addAll(other.messageReadId_);
+          }
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -1025,120 +570,70 @@ public final class Messeji {
         return this;
       }
 
-      private com.hello.messeji.api.Messeji.ReadReceipt readReceipt_ = com.hello.messeji.api.Messeji.ReadReceipt.getDefaultInstance();
-      private com.google.protobuf.SingleFieldBuilder<
-          com.hello.messeji.api.Messeji.ReadReceipt, com.hello.messeji.api.Messeji.ReadReceipt.Builder, com.hello.messeji.api.Messeji.ReadReceiptOrBuilder> readReceiptBuilder_;
-      /**
-       * <code>optional .ReadReceipt read_receipt = 2;</code>
-       */
-      public boolean hasReadReceipt() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+      private java.util.List<java.lang.Long> messageReadId_ = java.util.Collections.emptyList();
+      private void ensureMessageReadIdIsMutable() {
+        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+          messageReadId_ = new java.util.ArrayList<java.lang.Long>(messageReadId_);
+          bitField0_ |= 0x00000002;
+         }
       }
       /**
-       * <code>optional .ReadReceipt read_receipt = 2;</code>
+       * <code>repeated int64 message_read_id = 2;</code>
        */
-      public com.hello.messeji.api.Messeji.ReadReceipt getReadReceipt() {
-        if (readReceiptBuilder_ == null) {
-          return readReceipt_;
-        } else {
-          return readReceiptBuilder_.getMessage();
-        }
+      public java.util.List<java.lang.Long>
+          getMessageReadIdList() {
+        return java.util.Collections.unmodifiableList(messageReadId_);
       }
       /**
-       * <code>optional .ReadReceipt read_receipt = 2;</code>
+       * <code>repeated int64 message_read_id = 2;</code>
        */
-      public Builder setReadReceipt(com.hello.messeji.api.Messeji.ReadReceipt value) {
-        if (readReceiptBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          readReceipt_ = value;
-          onChanged();
-        } else {
-          readReceiptBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000002;
-        return this;
+      public int getMessageReadIdCount() {
+        return messageReadId_.size();
       }
       /**
-       * <code>optional .ReadReceipt read_receipt = 2;</code>
+       * <code>repeated int64 message_read_id = 2;</code>
        */
-      public Builder setReadReceipt(
-          com.hello.messeji.api.Messeji.ReadReceipt.Builder builderForValue) {
-        if (readReceiptBuilder_ == null) {
-          readReceipt_ = builderForValue.build();
-          onChanged();
-        } else {
-          readReceiptBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000002;
-        return this;
+      public long getMessageReadId(int index) {
+        return messageReadId_.get(index);
       }
       /**
-       * <code>optional .ReadReceipt read_receipt = 2;</code>
+       * <code>repeated int64 message_read_id = 2;</code>
        */
-      public Builder mergeReadReceipt(com.hello.messeji.api.Messeji.ReadReceipt value) {
-        if (readReceiptBuilder_ == null) {
-          if (((bitField0_ & 0x00000002) == 0x00000002) &&
-              readReceipt_ != com.hello.messeji.api.Messeji.ReadReceipt.getDefaultInstance()) {
-            readReceipt_ =
-              com.hello.messeji.api.Messeji.ReadReceipt.newBuilder(readReceipt_).mergeFrom(value).buildPartial();
-          } else {
-            readReceipt_ = value;
-          }
-          onChanged();
-        } else {
-          readReceiptBuilder_.mergeFrom(value);
-        }
-        bitField0_ |= 0x00000002;
-        return this;
-      }
-      /**
-       * <code>optional .ReadReceipt read_receipt = 2;</code>
-       */
-      public Builder clearReadReceipt() {
-        if (readReceiptBuilder_ == null) {
-          readReceipt_ = com.hello.messeji.api.Messeji.ReadReceipt.getDefaultInstance();
-          onChanged();
-        } else {
-          readReceiptBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000002);
-        return this;
-      }
-      /**
-       * <code>optional .ReadReceipt read_receipt = 2;</code>
-       */
-      public com.hello.messeji.api.Messeji.ReadReceipt.Builder getReadReceiptBuilder() {
-        bitField0_ |= 0x00000002;
+      public Builder setMessageReadId(
+          int index, long value) {
+        ensureMessageReadIdIsMutable();
+        messageReadId_.set(index, value);
         onChanged();
-        return getReadReceiptFieldBuilder().getBuilder();
+        return this;
       }
       /**
-       * <code>optional .ReadReceipt read_receipt = 2;</code>
+       * <code>repeated int64 message_read_id = 2;</code>
        */
-      public com.hello.messeji.api.Messeji.ReadReceiptOrBuilder getReadReceiptOrBuilder() {
-        if (readReceiptBuilder_ != null) {
-          return readReceiptBuilder_.getMessageOrBuilder();
-        } else {
-          return readReceipt_;
-        }
+      public Builder addMessageReadId(long value) {
+        ensureMessageReadIdIsMutable();
+        messageReadId_.add(value);
+        onChanged();
+        return this;
       }
       /**
-       * <code>optional .ReadReceipt read_receipt = 2;</code>
+       * <code>repeated int64 message_read_id = 2;</code>
        */
-      private com.google.protobuf.SingleFieldBuilder<
-          com.hello.messeji.api.Messeji.ReadReceipt, com.hello.messeji.api.Messeji.ReadReceipt.Builder, com.hello.messeji.api.Messeji.ReadReceiptOrBuilder> 
-          getReadReceiptFieldBuilder() {
-        if (readReceiptBuilder_ == null) {
-          readReceiptBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              com.hello.messeji.api.Messeji.ReadReceipt, com.hello.messeji.api.Messeji.ReadReceipt.Builder, com.hello.messeji.api.Messeji.ReadReceiptOrBuilder>(
-                  getReadReceipt(),
-                  getParentForChildren(),
-                  isClean());
-          readReceipt_ = null;
-        }
-        return readReceiptBuilder_;
+      public Builder addAllMessageReadId(
+          java.lang.Iterable<? extends java.lang.Long> values) {
+        ensureMessageReadIdIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, messageReadId_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 message_read_id = 2;</code>
+       */
+      public Builder clearMessageReadId() {
+        messageReadId_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
       }
 
       // @@protoc_insertion_point(builder_scope:ReceiveMessageRequest)
@@ -2313,8 +1808,8 @@ public final class Messeji {
     // @@protoc_insertion_point(class_scope:Message)
   }
 
-  public interface MultiMessageOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:MultiMessage)
+  public interface BatchMessageOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:BatchMessage)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -2342,25 +1837,25 @@ public final class Messeji {
         int index);
   }
   /**
-   * Protobuf type {@code MultiMessage}
+   * Protobuf type {@code BatchMessage}
    */
-  public static final class MultiMessage extends
+  public static final class BatchMessage extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:MultiMessage)
-      MultiMessageOrBuilder {
-    // Use MultiMessage.newBuilder() to construct.
-    private MultiMessage(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      // @@protoc_insertion_point(message_implements:BatchMessage)
+      BatchMessageOrBuilder {
+    // Use BatchMessage.newBuilder() to construct.
+    private BatchMessage(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
       this.unknownFields = builder.getUnknownFields();
     }
-    private MultiMessage(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+    private BatchMessage(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
 
-    private static final MultiMessage defaultInstance;
-    public static MultiMessage getDefaultInstance() {
+    private static final BatchMessage defaultInstance;
+    public static BatchMessage getDefaultInstance() {
       return defaultInstance;
     }
 
-    public MultiMessage getDefaultInstanceForType() {
+    public BatchMessage getDefaultInstanceForType() {
       return defaultInstance;
     }
 
@@ -2370,7 +1865,7 @@ public final class Messeji {
         getUnknownFields() {
       return this.unknownFields;
     }
-    private MultiMessage(
+    private BatchMessage(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -2418,28 +1913,28 @@ public final class Messeji {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.hello.messeji.api.Messeji.internal_static_MultiMessage_descriptor;
+      return com.hello.messeji.api.Messeji.internal_static_BatchMessage_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.hello.messeji.api.Messeji.internal_static_MultiMessage_fieldAccessorTable
+      return com.hello.messeji.api.Messeji.internal_static_BatchMessage_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.hello.messeji.api.Messeji.MultiMessage.class, com.hello.messeji.api.Messeji.MultiMessage.Builder.class);
+              com.hello.messeji.api.Messeji.BatchMessage.class, com.hello.messeji.api.Messeji.BatchMessage.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<MultiMessage> PARSER =
-        new com.google.protobuf.AbstractParser<MultiMessage>() {
-      public MultiMessage parsePartialFrom(
+    public static com.google.protobuf.Parser<BatchMessage> PARSER =
+        new com.google.protobuf.AbstractParser<BatchMessage>() {
+      public BatchMessage parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-        return new MultiMessage(input, extensionRegistry);
+        return new BatchMessage(input, extensionRegistry);
       }
     };
 
     @java.lang.Override
-    public com.google.protobuf.Parser<MultiMessage> getParserForType() {
+    public com.google.protobuf.Parser<BatchMessage> getParserForType() {
       return PARSER;
     }
 
@@ -2528,53 +2023,53 @@ public final class Messeji {
       return super.writeReplace();
     }
 
-    public static com.hello.messeji.api.Messeji.MultiMessage parseFrom(
+    public static com.hello.messeji.api.Messeji.BatchMessage parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static com.hello.messeji.api.Messeji.MultiMessage parseFrom(
+    public static com.hello.messeji.api.Messeji.BatchMessage parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static com.hello.messeji.api.Messeji.MultiMessage parseFrom(byte[] data)
+    public static com.hello.messeji.api.Messeji.BatchMessage parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static com.hello.messeji.api.Messeji.MultiMessage parseFrom(
+    public static com.hello.messeji.api.Messeji.BatchMessage parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static com.hello.messeji.api.Messeji.MultiMessage parseFrom(java.io.InputStream input)
+    public static com.hello.messeji.api.Messeji.BatchMessage parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return PARSER.parseFrom(input);
     }
-    public static com.hello.messeji.api.Messeji.MultiMessage parseFrom(
+    public static com.hello.messeji.api.Messeji.BatchMessage parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return PARSER.parseFrom(input, extensionRegistry);
     }
-    public static com.hello.messeji.api.Messeji.MultiMessage parseDelimitedFrom(java.io.InputStream input)
+    public static com.hello.messeji.api.Messeji.BatchMessage parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return PARSER.parseDelimitedFrom(input);
     }
-    public static com.hello.messeji.api.Messeji.MultiMessage parseDelimitedFrom(
+    public static com.hello.messeji.api.Messeji.BatchMessage parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return PARSER.parseDelimitedFrom(input, extensionRegistry);
     }
-    public static com.hello.messeji.api.Messeji.MultiMessage parseFrom(
+    public static com.hello.messeji.api.Messeji.BatchMessage parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return PARSER.parseFrom(input);
     }
-    public static com.hello.messeji.api.Messeji.MultiMessage parseFrom(
+    public static com.hello.messeji.api.Messeji.BatchMessage parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -2583,7 +2078,7 @@ public final class Messeji {
 
     public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.hello.messeji.api.Messeji.MultiMessage prototype) {
+    public static Builder newBuilder(com.hello.messeji.api.Messeji.BatchMessage prototype) {
       return newBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() { return newBuilder(this); }
@@ -2595,25 +2090,25 @@ public final class Messeji {
       return builder;
     }
     /**
-     * Protobuf type {@code MultiMessage}
+     * Protobuf type {@code BatchMessage}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:MultiMessage)
-        com.hello.messeji.api.Messeji.MultiMessageOrBuilder {
+        // @@protoc_insertion_point(builder_implements:BatchMessage)
+        com.hello.messeji.api.Messeji.BatchMessageOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return com.hello.messeji.api.Messeji.internal_static_MultiMessage_descriptor;
+        return com.hello.messeji.api.Messeji.internal_static_BatchMessage_descriptor;
       }
 
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.hello.messeji.api.Messeji.internal_static_MultiMessage_fieldAccessorTable
+        return com.hello.messeji.api.Messeji.internal_static_BatchMessage_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                com.hello.messeji.api.Messeji.MultiMessage.class, com.hello.messeji.api.Messeji.MultiMessage.Builder.class);
+                com.hello.messeji.api.Messeji.BatchMessage.class, com.hello.messeji.api.Messeji.BatchMessage.Builder.class);
       }
 
-      // Construct using com.hello.messeji.api.Messeji.MultiMessage.newBuilder()
+      // Construct using com.hello.messeji.api.Messeji.BatchMessage.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -2649,23 +2144,23 @@ public final class Messeji {
 
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.hello.messeji.api.Messeji.internal_static_MultiMessage_descriptor;
+        return com.hello.messeji.api.Messeji.internal_static_BatchMessage_descriptor;
       }
 
-      public com.hello.messeji.api.Messeji.MultiMessage getDefaultInstanceForType() {
-        return com.hello.messeji.api.Messeji.MultiMessage.getDefaultInstance();
+      public com.hello.messeji.api.Messeji.BatchMessage getDefaultInstanceForType() {
+        return com.hello.messeji.api.Messeji.BatchMessage.getDefaultInstance();
       }
 
-      public com.hello.messeji.api.Messeji.MultiMessage build() {
-        com.hello.messeji.api.Messeji.MultiMessage result = buildPartial();
+      public com.hello.messeji.api.Messeji.BatchMessage build() {
+        com.hello.messeji.api.Messeji.BatchMessage result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return result;
       }
 
-      public com.hello.messeji.api.Messeji.MultiMessage buildPartial() {
-        com.hello.messeji.api.Messeji.MultiMessage result = new com.hello.messeji.api.Messeji.MultiMessage(this);
+      public com.hello.messeji.api.Messeji.BatchMessage buildPartial() {
+        com.hello.messeji.api.Messeji.BatchMessage result = new com.hello.messeji.api.Messeji.BatchMessage(this);
         int from_bitField0_ = bitField0_;
         if (messageBuilder_ == null) {
           if (((bitField0_ & 0x00000001) == 0x00000001)) {
@@ -2681,16 +2176,16 @@ public final class Messeji {
       }
 
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof com.hello.messeji.api.Messeji.MultiMessage) {
-          return mergeFrom((com.hello.messeji.api.Messeji.MultiMessage)other);
+        if (other instanceof com.hello.messeji.api.Messeji.BatchMessage) {
+          return mergeFrom((com.hello.messeji.api.Messeji.BatchMessage)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(com.hello.messeji.api.Messeji.MultiMessage other) {
-        if (other == com.hello.messeji.api.Messeji.MultiMessage.getDefaultInstance()) return this;
+      public Builder mergeFrom(com.hello.messeji.api.Messeji.BatchMessage other) {
+        if (other == com.hello.messeji.api.Messeji.BatchMessage.getDefaultInstance()) return this;
         if (messageBuilder_ == null) {
           if (!other.message_.isEmpty()) {
             if (message_.isEmpty()) {
@@ -2735,11 +2230,11 @@ public final class Messeji {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        com.hello.messeji.api.Messeji.MultiMessage parsedMessage = null;
+        com.hello.messeji.api.Messeji.BatchMessage parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (com.hello.messeji.api.Messeji.MultiMessage) e.getUnfinishedMessage();
+          parsedMessage = (com.hello.messeji.api.Messeji.BatchMessage) e.getUnfinishedMessage();
           throw e;
         } finally {
           if (parsedMessage != null) {
@@ -2990,22 +2485,17 @@ public final class Messeji {
         return messageBuilder_;
       }
 
-      // @@protoc_insertion_point(builder_scope:MultiMessage)
+      // @@protoc_insertion_point(builder_scope:BatchMessage)
     }
 
     static {
-      defaultInstance = new MultiMessage(true);
+      defaultInstance = new BatchMessage(true);
       defaultInstance.initFields();
     }
 
-    // @@protoc_insertion_point(class_scope:MultiMessage)
+    // @@protoc_insertion_point(class_scope:BatchMessage)
   }
 
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_ReadReceipt_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_ReadReceipt_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_ReceiveMessageRequest_descriptor;
   private static
@@ -3017,10 +2507,10 @@ public final class Messeji {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_Message_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_MultiMessage_descriptor;
+    internal_static_BatchMessage_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_MultiMessage_fieldAccessorTable;
+      internal_static_BatchMessage_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -3030,16 +2520,15 @@ public final class Messeji {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\rmesseji.proto\032\022sleep_sounds.proto\"!\n\013R" +
-      "eadReceipt\022\022\n\nmessage_id\030\001 \003(\003\"M\n\025Receiv" +
-      "eMessageRequest\022\020\n\010sense_id\030\001 \002(\t\022\"\n\014rea" +
-      "d_receipt\030\002 \001(\0132\014.ReadReceipt\"\251\001\n\007Messag" +
-      "e\022\021\n\tsender_id\030\001 \001(\t\022\r\n\005order\030\002 \002(\003\022\022\n\nm" +
-      "essage_id\030\003 \001(\003\022\033\n\004type\030\004 \002(\0162\r.Message." +
-      "Type\0221\n\024sleep_sounds_command\030\005 \001(\0132\023.Sle" +
-      "epSoundsCommand\"\030\n\004Type\022\020\n\014SLEEP_SOUNDS\020" +
-      "\000\")\n\014MultiMessage\022\031\n\007message\030\001 \003(\0132\010.Mes" +
-      "sageB\027\n\025com.hello.messeji.api"
+      "\n\rmesseji.proto\032\022sleep_sounds.proto\"B\n\025R" +
+      "eceiveMessageRequest\022\020\n\010sense_id\030\001 \002(\t\022\027" +
+      "\n\017message_read_id\030\002 \003(\003\"\251\001\n\007Message\022\021\n\ts" +
+      "ender_id\030\001 \001(\t\022\r\n\005order\030\002 \002(\003\022\022\n\nmessage" +
+      "_id\030\003 \001(\003\022\033\n\004type\030\004 \002(\0162\r.Message.Type\0221" +
+      "\n\024sleep_sounds_command\030\005 \001(\0132\023.SleepSoun" +
+      "dsCommand\"\030\n\004Type\022\020\n\014SLEEP_SOUNDS\020\000\")\n\014B" +
+      "atchMessage\022\031\n\007message\030\001 \003(\0132\010.MessageB\027" +
+      "\n\025com.hello.messeji.api"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -3054,29 +2543,23 @@ public final class Messeji {
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           com.hello.messeji.api.SleepSounds.getDescriptor(),
         }, assigner);
-    internal_static_ReadReceipt_descriptor =
-      getDescriptor().getMessageTypes().get(0);
-    internal_static_ReadReceipt_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_ReadReceipt_descriptor,
-        new java.lang.String[] { "MessageId", });
     internal_static_ReceiveMessageRequest_descriptor =
-      getDescriptor().getMessageTypes().get(1);
+      getDescriptor().getMessageTypes().get(0);
     internal_static_ReceiveMessageRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_ReceiveMessageRequest_descriptor,
-        new java.lang.String[] { "SenseId", "ReadReceipt", });
+        new java.lang.String[] { "SenseId", "MessageReadId", });
     internal_static_Message_descriptor =
-      getDescriptor().getMessageTypes().get(2);
+      getDescriptor().getMessageTypes().get(1);
     internal_static_Message_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_Message_descriptor,
         new java.lang.String[] { "SenderId", "Order", "MessageId", "Type", "SleepSoundsCommand", });
-    internal_static_MultiMessage_descriptor =
-      getDescriptor().getMessageTypes().get(3);
-    internal_static_MultiMessage_fieldAccessorTable = new
+    internal_static_BatchMessage_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_BatchMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_MultiMessage_descriptor,
+        internal_static_BatchMessage_descriptor,
         new java.lang.String[] { "Message", });
     com.hello.messeji.api.SleepSounds.getDescriptor();
   }
