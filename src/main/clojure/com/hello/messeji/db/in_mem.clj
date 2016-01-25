@@ -19,8 +19,7 @@
      :sense-id sense-id
      :sent? false
      :acknowledged? false
-     ;; TODO use nanoTime
-     :timestamp (System/currentTimeMillis)}))
+     :timestamp (System/nanoTime)}))
 
 (defn- ack-message-ids
   [db-map message-ids]
@@ -43,8 +42,8 @@
     (->> @database-ref
       vals
       (filter #(and (= (:sense-id %) sense-id)
-                    (> max-message-age-millis
-                      (- (System/currentTimeMillis) (:timestamp %)))
+                    (> (* max-message-age-millis 1000000)
+                      (- (System/nanoTime) (:timestamp %)))
                     (not (:acknowledged? %))))
       (map :message)))
 
