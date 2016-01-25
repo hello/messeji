@@ -5,7 +5,7 @@
     [byte-streams :as bs]
     [clojure.edn :as edn]
     [com.hello.messeji.db.in-mem :as mem]
-    [compojure.core :as compojure :refer [defroutes GET POST]]
+    [compojure.core :as compojure :refer [GET POST]]
     [manifold.deferred :as deferred]
     [ring.middleware.params :as params]
     [ring.middleware.content-type :refer [wrap-content-type]])
@@ -33,24 +33,31 @@ protobuf wrapper for
 ;; TODO config
 (def max-message-age-millis 10000)
 
-(def ^:private empty-batch-message
-  (.build (Messeji$BatchMessage/newBuilder)))
+(defn- batch-message
+  [messages]
+  (let [builder (Messeji$BatchMessage/newBuilder)]
+    (doseq [msg messages]
+      (.addMessage builder msg))
+    (.build builder)))
 
-(defn- empty-batch-message-response
-  []
-  {:status 200
-   :body (bs/to-input-stream (.toByteArray empty-batch-message))})
+(defn- batch-message-response
+  [messages]
+  {:body (-> messages
+          batch-message
+          .toByteArray
+          bs/to-input-stream)
+   :status 200})
 
 (defn- receive-messages
   [connections-atom timeout sense-id]
   (if-let [unacked-messages (seq (mem/unacked-messages sense-id max-message-age-millis))]
-    unacked-messages
+    (batch-message-response unacked-messages)
     (let [deferred-response (deferred/deferred)]
       (swap! connections-atom assoc sense-id deferred-response)
       (deferred/timeout!
         deferred-response
         timeout
-        (empty-batch-message-response)))))
+        (batch-message-response [])))))
 
 (defn- request-sense-id
   [request]
@@ -60,22 +67,21 @@ protobuf wrapper for
   {:status 400
    :body ""})
 
+(defn- acked-message-ids
+  [^Messeji$ReceiveMessageRequest receive-message-request]
+  (seq (.getMessageReadIdList receive-message-request)))
+
 (defn handle-receive
   [connections key-store timeout request]
   (let [sense-id (request-sense-id request)
         receive-message-request (Messeji$ReceiveMessageRequest/parseFrom
-                                  (:body request))]
-    ;; TODO ack
+                                  (:body request))
+        message-ids (acked-message-ids receive-message-request)]
     (if (= sense-id (.getSenseId receive-message-request))
-      (receive-messages connections timeout sense-id)
+      (do
+        (mem/acknowledge! message-ids)
+        (receive-messages connections timeout sense-id))
       response-400)))
-
-(defn- batch-message
-  [messages]
-  (let [builder (Messeji$BatchMessage/newBuilder)]
-    (doseq [msg messages]
-      (.addMessage builder msg))
-    (.build builder)))
 
 (defn- send-messages!
   [connection-deferred messages]
@@ -83,12 +89,13 @@ protobuf wrapper for
              (not (deferred/realized? connection-deferred)))
     (when-let [delivery (deferred/success!
                           connection-deferred
-                          (batch-message messages))]
+                          (batch-message-response messages))]
       (mem/mark-sent! messages)
       delivery)))
 
 (defn handle-send
   [connections-atom request]
+  ;; TODO 400 if no sense id
   (let [sense-id (-> request :headers (get HelloHttpHeader/SENSE_ID))
         message (Messeji$Message/parseFrom (:body request))
         message-with-id (mem/create-message! sense-id message)]

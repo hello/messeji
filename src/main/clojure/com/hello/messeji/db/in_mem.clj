@@ -47,9 +47,14 @@
                   (not (:acknowledged? %))))
     (map :message)))
 
-; (defn acknowledge!
-;   [message-ids]
-;   (dosync
-;     (alter database assoc-in [message-id :acknowledged?] true))
-;   (prn @database)
-;   (@database message-id))
+(defn- ack-message-ids
+  [db-map message-ids]
+  (reduce #(assoc-in %1 [%2 :acknowledged?] true) db-map message-ids))
+
+(defn acknowledge!
+  "Mark all message-ids as acknowledged.
+  Now these messages won't be retrieved from `unacked-messages`."
+  [message-ids]
+  (dosync
+    (alter database ack-message-ids message-ids))
+  (prn @database))
