@@ -4,6 +4,7 @@
     [aleph.http :as http]
     [byte-streams :as bs]
     [clojure.edn :as edn]
+    [clojure.pprint :refer [pprint]]
     [com.hello.messeji.db :as db]
     [com.hello.messeji.db.in-mem :as mem]
     [com.hello.messeji.middleware :as middleware]
@@ -62,11 +63,17 @@
         signed-message (-> request :body bs/to-byte-array SignedMessage/parse)
         receive-message-request (Messeji$ReceiveMessageRequest/parseFrom
                                   (.body signed-message))
+        key-optional (.get key-store sense-id)
         message-ids (acked-message-ids receive-message-request)]
-    (when-not (= sense-id (.getSenseId receive-message-request))
+    (when-not (and (= sense-id (.getSenseId receive-message-request))
+                   (.isPresent key-optional))
       (middleware/throw-invalid-request))
-    (db/acknowledge message-store message-ids)
-    (receive-messages connections message-store timeout sense-id)))
+    (if (.validateWithKey signed-message (.get key-optional))
+      ;; TODO throw this as well and catch/rethrow all ex-info with :status
+      (do
+        (db/acknowledge message-store message-ids)
+        (receive-messages connections message-store timeout sense-id))
+      {:status 401, :body ""})))
 
 (defn- send-messages!
   [connection-deferred messages]
@@ -112,10 +119,10 @@
                         (withConnectionTimeout 200)
                         (withMaxErrorRetry 1)
                         (withMaxConnections 100))
-        ddb-client (doto (AmazonDynamoDBClient. credentials-provider client-config)
-                     (.setEndpoint (get-in config-map [:key-store :endpoint])))
+        ks-ddb-client (doto (AmazonDynamoDBClient. credentials-provider client-config)
+                        (.setEndpoint (get-in config-map [:key-store :endpoint])))
         key-store (KeyStoreDynamoDB.
-                    ddb-client
+                    ks-ddb-client
                     (get-in config-map [:key-store :table])
                     (.getBytes "1234567891234567") ; TODO remove default key
                     (int 120)) ; 2 minutes for cache
@@ -126,11 +133,13 @@
                  {:port (get-in config-map [:http :port])})]
     {:connections connections
      :server server
-     :ddb-client ddb-client}))
+     :ddb-clients {:key-store ks-ddb-client}}))
 
 (defn -main
   [config-file & args]
   (let [config (-> config-file slurp edn/read-string)
         server (start-server! config)]
+    (println "Using the following config: ")
+    (pprint config)
     (prn server)
     server))

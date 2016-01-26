@@ -33,7 +33,6 @@
 
 (defn- post
   [url sense-id body]
-  (prn url sense-id body)
   @(http/post
     url
     {:body body
@@ -74,14 +73,15 @@
     (map #(.getMessageId %))))
 
 (defn start-sense
-  ^java.io.Closeable [host sense-id]
+  ^java.io.Closeable [host sense-id callback-fn]
   (let [running (atom true)]
     (future
       (loop [message-ids []]
         (when @running
           (let [batch-message (receive-messages host sense-id message-ids)
                 message-ids (batch-message-ids batch-message)]
-            (when (seq message-ids) (prn message-ids))
+            (when (seq message-ids)
+              (callback-fn message-ids))
             (recur message-ids)))))
     (reify java.io.Closeable
       (close [this]
