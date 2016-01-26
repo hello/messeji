@@ -4,7 +4,8 @@
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [aleph "0.4.1-beta2"]
                  [compojure "1.4.0"]
-                 [com.hello.suripu/suripu-service "0.6.65"]]
+                 [com.hello.suripu/suripu-service "0.6.65"]
+                 [com.google.protobuf/protobuf-java "2.6.1"]]
   :plugins [[s3-wagon-private "1.2.0"]]
   :source-paths ["src" "src/main/clojure"]
   :java-source-paths ["src/main/java"]  ; Java source is stored separately.
