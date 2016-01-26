@@ -2,10 +2,10 @@
   (:gen-class)
   (:require
     [aleph.http :as http]
-    [byte-streams :as bs]
     [clojure.edn :as edn]
     [com.hello.messeji.db :as db]
     [com.hello.messeji.db.in-mem :as mem]
+    [com.hello.messeji.middleware :as middleware]
     [compojure.core :as compojure :refer [GET POST]]
     [manifold.deferred :as deferred]
     [ring.middleware.params :as params]
@@ -14,9 +14,6 @@
     [com.amazonaws ClientConfiguration]
     [com.amazonaws.auth DefaultAWSCredentialsProviderChain]
     [com.amazonaws.services.dynamodbv2 AmazonDynamoDBClient]
-    [com.google.protobuf
-      InvalidProtocolBufferException
-      Message]
     [com.hello.suripu.core.db KeyStoreDynamoDB]
     [com.hello.suripu.core.util HelloHttpHeader]
     [com.hello.messeji.api
@@ -25,49 +22,6 @@
       Messeji$Message$Type
       Messeji$BatchMessage]
     [com.hello.suripu.service SignedMessage]))
-
-(def ^:private response-400
-  {:status 400
-   :body ""})
-
-(defn wrap-protobuf-request
-  [handler]
-  (fn [request]
-    (try
-      (handler request)
-      (catch InvalidProtocolBufferException e
-        response-400))))
-
-(defn wrap-protobuf-response
-  [handler]
-  (fn [request]
-    (let [response (handler request)]
-      (if (instance? Message (:body response))
-        (update-in response [:body] #(-> % .toByteArray bs/to-input-stream))
-        response))))
-
-(defn wrap-invalid-request
-  [handler]
-  (fn [request]
-    (try
-      (handler request)
-      (catch clojure.lang.ExceptionInfo e
-        (if (= ::invalid-request (-> e ex-data ::type))
-          response-400
-          (throw e))))))
-
-(defn wrap-500
-  [handler]
-  (fn [request]
-    (try
-      (handler request)
-      (catch Exception e
-        {:status 500
-         :body ""}))))
-
-(defn throw-invalid-request
-  []
-  (throw (ex-info "Invalid request." {::type ::invalid-request})))
 
 (defn- batch-message
   [messages]
@@ -95,7 +49,7 @@
 (defn- request-sense-id
   [request]
   (let [sense-id (-> request :headers (get HelloHttpHeader/SENSE_ID))]
-    (or sense-id (throw-invalid-request))))
+    (or sense-id (middleware/throw-invalid-request))))
 
 (defn- acked-message-ids
   [^Messeji$ReceiveMessageRequest receive-message-request]
@@ -108,7 +62,7 @@
                                   (:body request))
         message-ids (acked-message-ids receive-message-request)]
     (when-not (= sense-id (.getSenseId receive-message-request))
-      (throw-invalid-request))
+      (middleware/throw-invalid-request))
     (db/acknowledge message-store message-ids)
     (receive-messages connections message-store timeout sense-id)))
 
@@ -141,11 +95,11 @@
           (POST "/send" request
             (handle-send connections message-store request)))]
     (-> routes
-       wrap-protobuf-request
-       wrap-protobuf-response
-       wrap-invalid-request
+       middleware/wrap-protobuf-request
+       middleware/wrap-protobuf-response
+       middleware/wrap-invalid-request
        wrap-content-type
-       wrap-500)))
+       middleware/wrap-500)))
 
 (defn start-server!
   [config-map]
