@@ -11,6 +11,7 @@
    :body ""})
 
 (defn wrap-protobuf-request
+  "Catch parsing errors from deserializing protobuf requests."
   [handler]
   (fn [request]
     (try
@@ -19,6 +20,8 @@
         response-400))))
 
 (defn wrap-protobuf-response
+  "If a protobuf message object is returned in the response body,
+  convert it to an InputStream matching the Ring spec."
   [handler]
   (fn [request]
     (let [response (handler request)]
@@ -27,6 +30,8 @@
         response))))
 
 (defn wrap-invalid-request
+  "When an invalid request is thrown (see `throw-invalid-request`),
+  it will be caught and turned into a 400 response."
   [handler]
   (fn [request]
     (try
@@ -37,14 +42,26 @@
           (throw e))))))
 
 (defn wrap-500
+  "Return a generic 500 message to client instead of an exception trace."
   [handler]
   (fn [request]
     (try
       (handler request)
       (catch Exception e
+        (prn e)
         {:status 500
          :body ""}))))
 
+;; TODO obviously better logging in the future
+(defn wrap-log-request
+  "Log all request bodies."
+  [handler]
+  (fn [request]
+    (prn request)
+    (handler request)))
+
 (defn throw-invalid-request
+  "Throw an invalid request exception that will be caught by `wrap-invalid-request`
+  and rethrown as a 400 error."
   []
   (throw (ex-info "Invalid request." {::type ::invalid-request})))

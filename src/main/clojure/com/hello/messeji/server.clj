@@ -2,6 +2,7 @@
   (:gen-class)
   (:require
     [aleph.http :as http]
+    [byte-streams :as bs]
     [clojure.edn :as edn]
     [com.hello.messeji.db :as db]
     [com.hello.messeji.db.in-mem :as mem]
@@ -58,8 +59,9 @@
 (defn handle-receive
   [connections key-store message-store timeout request]
   (let [sense-id (request-sense-id request)
+        signed-message (-> request :body bs/to-byte-array SignedMessage/parse)
         receive-message-request (Messeji$ReceiveMessageRequest/parseFrom
-                                  (:body request))
+                                  (.body signed-message))
         message-ids (acked-message-ids receive-message-request)]
     (when-not (= sense-id (.getSenseId receive-message-request))
       (middleware/throw-invalid-request))
@@ -95,6 +97,7 @@
           (POST "/send" request
             (handle-send connections message-store request)))]
     (-> routes
+       middleware/wrap-log-request
        middleware/wrap-protobuf-request
        middleware/wrap-protobuf-response
        middleware/wrap-invalid-request
