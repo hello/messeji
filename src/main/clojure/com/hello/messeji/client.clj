@@ -1,7 +1,8 @@
 (ns com.hello.messeji.client
   (:require
     [aleph.http :as http]
-    [byte-streams :as bs])
+    [byte-streams :as bs]
+    [clojure.edn :as edn])
   (:import
     [com.hello.messeji.api
       Messeji$ReceiveMessageRequest
@@ -14,9 +15,11 @@
 (def test-key-bytes (.getBytes "1234567891234567"))
 
 (defn localhost
-  []
-  ;; TODO
-  )
+  ([]
+    (localhost "resources/config/dev.edn"))
+  ([config-file-name]
+    (let [port (-> config-file-name slurp edn/read-string :http :port)]
+      (str "http://localhost:" port))))
 
 (defn sign-protobuf
   "Given a protobuf object and the bytes of an aes key,

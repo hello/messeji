@@ -17,12 +17,12 @@
     [com.amazonaws.services.dynamodbv2 AmazonDynamoDBClient]
     [com.hello.suripu.core.db KeyStoreDynamoDB]
     [com.hello.suripu.core.util HelloHttpHeader]
+    [com.hello.suripu.service SignedMessage]
     [com.hello.messeji.api
       Messeji$ReceiveMessageRequest
       Messeji$Message
       Messeji$Message$Type
-      Messeji$BatchMessage]
-    [com.hello.suripu.service SignedMessage]))
+      Messeji$BatchMessage]))
 
 (defn- batch-message
   [messages]
