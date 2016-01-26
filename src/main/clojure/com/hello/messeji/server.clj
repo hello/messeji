@@ -14,6 +14,9 @@
     [com.amazonaws ClientConfiguration]
     [com.amazonaws.auth DefaultAWSCredentialsProviderChain]
     [com.amazonaws.services.dynamodbv2 AmazonDynamoDBClient]
+    [com.google.protobuf
+      InvalidProtocolBufferException
+      Message]
     [com.hello.suripu.core.db KeyStoreDynamoDB]
     [com.hello.suripu.core.util HelloHttpHeader]
     [com.hello.messeji.api
@@ -33,6 +36,26 @@ TODO
 - unit and integration tests
 "
 
+(def ^:private response-400
+  {:status 400
+   :body ""})
+
+(defn wrap-protobuf-request
+  [handler]
+  (fn [request]
+    (try
+      (handler request)
+      (catch InvalidProtocolBufferException e
+        response-400))))
+
+(defn wrap-protobuf-response
+  [handler]
+  (fn [request]
+    (let [response (handler request)]
+      (if (instance? Message (:body response))
+        (update-in response [:body] #(-> % .toByteArray bs/to-input-stream))
+        response))))
+
 (defn- batch-message
   [messages]
   (let [builder (Messeji$BatchMessage/newBuilder)]
@@ -42,10 +65,7 @@ TODO
 
 (defn- batch-message-response
   [messages]
-  {:body (-> messages
-          batch-message
-          .toByteArray
-          bs/to-input-stream)
+  {:body (batch-message messages)
    :status 200})
 
 (defn- receive-messages
@@ -62,10 +82,6 @@ TODO
 (defn- request-sense-id
   [request]
   (-> request :headers (get HelloHttpHeader/SENSE_ID)))
-
-(def ^:private response-400
-  {:status 400
-   :body ""})
 
 (defn- acked-message-ids
   [^Messeji$ReceiveMessageRequest receive-message-request]
@@ -96,22 +112,25 @@ TODO
 (defn handle-send
   [connections-atom message-store request]
   ;; TODO 400 if no sense id
-  (let [sense-id (-> request :headers (get HelloHttpHeader/SENSE_ID))
+  (let [sense-id (request-sense-id request)
         message (Messeji$Message/parseFrom (:body request))
         message-with-id (db/create-message message-store sense-id message)]
     (send-messages! (get @connections-atom sense-id) [message-with-id])
-    {:status 200
-     :body "okay"}))
+    {:status 201
+     :body message-with-id}))
 
 (defn handler
   [connections key-store message-store timeout]
   (let [routes
         (compojure/routes
+          (GET "/healthz" {:status 200 :body "ok"})
           (POST "/receive" request
             (handle-receive connections key-store message-store timeout request))
           (POST "/send" request
             (handle-send connections message-store request)))]
     (-> routes
+       wrap-protobuf-request
+       wrap-protobuf-response
        wrap-content-type)))
 
 (defn start-server!
