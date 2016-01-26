@@ -14,8 +14,10 @@ export LEIN_PASSPHRASE=$AWS_SECRET_KEY
 
 ### Running the server
 ```bash
-lein run -m com.hello.messeji.server
+lein run -m com.hello.messeji.server resources/config/dev.edn
 ```
+
+Your `dev.edn` file won't exist right away (it's not in the repository), so copy the `dev.edn.example` file and make whatever changes you need.
 
 
 ## Protocol buffers
