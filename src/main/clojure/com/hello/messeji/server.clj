@@ -26,16 +26,6 @@
       Messeji$BatchMessage]
     [com.hello.suripu.service SignedMessage]))
 
-#_"
-TODO
-- protobuf wrapper for
-  - unparseable request (400)
-  - boilerplate around parsing/serializing protobuf message
-  - content type
-- assorted line-level code TODOs
-- unit and integration tests
-"
-
 (def ^:private response-400
   {:status 400
    :body ""})
@@ -55,6 +45,29 @@ TODO
       (if (instance? Message (:body response))
         (update-in response [:body] #(-> % .toByteArray bs/to-input-stream))
         response))))
+
+(defn wrap-invalid-request
+  [handler]
+  (fn [request]
+    (try
+      (handler request)
+      (catch clojure.lang.ExceptionInfo e
+        (if (= ::invalid-request (-> e ex-data ::type))
+          response-400
+          (throw e))))))
+
+(defn wrap-500
+  [handler]
+  (fn [request]
+    (try
+      (handler request)
+      (catch Exception e
+        {:status 500
+         :body ""}))))
+
+(defn throw-invalid-request
+  []
+  (throw (ex-info "Invalid request." {::type ::invalid-request})))
 
 (defn- batch-message
   [messages]
@@ -81,7 +94,8 @@ TODO
 
 (defn- request-sense-id
   [request]
-  (-> request :headers (get HelloHttpHeader/SENSE_ID)))
+  (let [sense-id (-> request :headers (get HelloHttpHeader/SENSE_ID))]
+    (or sense-id (throw-invalid-request))))
 
 (defn- acked-message-ids
   [^Messeji$ReceiveMessageRequest receive-message-request]
@@ -93,11 +107,10 @@ TODO
         receive-message-request (Messeji$ReceiveMessageRequest/parseFrom
                                   (:body request))
         message-ids (acked-message-ids receive-message-request)]
-    (if (= sense-id (.getSenseId receive-message-request))
-      (do
-        (db/acknowledge message-store message-ids)
-        (receive-messages connections message-store timeout sense-id))
-      response-400)))
+    (when-not (= sense-id (.getSenseId receive-message-request))
+      (throw-invalid-request))
+    (db/acknowledge message-store message-ids)
+    (receive-messages connections message-store timeout sense-id)))
 
 (defn- send-messages!
   [connection-deferred messages]
@@ -111,7 +124,6 @@ TODO
 
 (defn handle-send
   [connections-atom message-store request]
-  ;; TODO 400 if no sense id
   (let [sense-id (request-sense-id request)
         message (Messeji$Message/parseFrom (:body request))
         message-with-id (db/create-message message-store sense-id message)]
@@ -131,7 +143,9 @@ TODO
     (-> routes
        wrap-protobuf-request
        wrap-protobuf-response
-       wrap-content-type)))
+       wrap-invalid-request
+       wrap-content-type
+       wrap-500)))
 
 (defn start-server!
   [config-map]
