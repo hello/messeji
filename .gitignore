@@ -10,4 +10,4 @@ pom.xml.asc
 .hgignore
 .hg/
 .DS_Store
-dev.edn
+*.local.edn
