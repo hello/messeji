@@ -2,6 +2,7 @@
   :description "Async messaging service for communicating with Sense"
   :url "https://github.com/hello/messeji"
   :dependencies [[org.clojure/clojure "1.7.0"]
+                 [org.clojure/tools.logging "0.3.1"]
                  [aleph "0.4.1-beta2"]
                  [compojure "1.4.0"]
                  [com.hello.suripu/suripu-service "0.6.65"]
@@ -14,5 +15,5 @@
   :main com.hello.messeji.server
   :aot [com.hello.messeji.server]
   :repositories [["private" {:url "s3p://hello-maven/release/"
-                             :username :env
-                             :passphrase :env}]])
+                             :username :env/aws_access_key_id
+                             :passphrase :env/aws_secret_key}]])

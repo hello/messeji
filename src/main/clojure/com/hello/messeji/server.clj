@@ -4,6 +4,7 @@
     [aleph.http :as http]
     [byte-streams :as bs]
     [clojure.pprint :refer [pprint]]
+    [clojure.tools.logging :as log]
     [com.hello.messeji.config :as messeji-config]
     [com.hello.messeji.db :as db]
     [com.hello.messeji.db.in-mem :as mem]
@@ -138,7 +139,6 @@
   [config-file & args]
   (let [config (messeji-config/read (cons config-file args))
         server (start-server! config)]
-    (println "Using the following config: ")
-    (pprint config)
-    (prn server)
+    (log/debug "Using the following config: " config)
+    (log/debug "Server: " server)
     server))
