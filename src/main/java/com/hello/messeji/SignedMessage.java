@@ -2,8 +2,7 @@ package com.hello.messeji;
 
 import com.google.common.base.Optional;
 import org.apache.commons.codec.binary.Hex;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -23,7 +22,7 @@ import java.util.Random;
 
 public class SignedMessage {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SignedMessage.class);
+    private static final Logger LOGGER = Logger.getLogger(SignedMessage.class.getName());
 
     private static final Integer IV_LENGTH = 16;
     private static final Integer SIG_LENGTH = 32;
@@ -94,8 +93,8 @@ public class SignedMessage {
             md.update(body);
             final byte[] output = md.digest();
 
-            LOGGER.trace("HexDigest: {}", new String(Hex.encodeHex(output)));
-            LOGGER.trace("Output length: {}", output.length);
+            LOGGER.trace(String.format("HexDigest: %s", new String(Hex.encodeHex(output))));
+            LOGGER.trace(String.format("Output length: %s", output.length));
 
             final byte[] padded = new byte[32];
             for(int i = 0; i < output.length; i++) {
@@ -106,7 +105,7 @@ public class SignedMessage {
             sb.append("padded hex: " + paddedHex);
             sb.append("\n");
 
-            LOGGER.trace("padded: {}", paddedHex);
+            LOGGER.trace(String.format("padded: %s", paddedHex));
 
             final Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
             final SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
@@ -126,7 +125,7 @@ public class SignedMessage {
             sb.append("Decrypted sha: " + new String(Hex.encodeHex(decryptedBytes)));
             sb.append("\n");
 
-            LOGGER.trace("Sig: {}", sig);
+            LOGGER.trace("Sig: " + sig);
             return Optional.absent();
 
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException | IllegalBlockSizeException | NoSuchPaddingException | InvalidKeyException exception) {
@@ -155,7 +154,7 @@ public class SignedMessage {
         final Random r = new SecureRandom();
         final byte[] IV = new byte[IV_LENGTH];
         r.nextBytes(IV);
-        LOGGER.trace("random IV = {}", Hex.encodeHex(IV));
+        LOGGER.trace("random IV = " + Hex.encodeHex(IV));
 
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
@@ -164,7 +163,7 @@ public class SignedMessage {
             final MessageDigest md = MessageDigest.getInstance("SHA1");
             md.update(body);
             final byte[] output = md.digest();
-            LOGGER.trace("Sha = {}", Hex.encodeHex(output));
+            LOGGER.trace("Sha = " + Hex.encodeHex(output));
 
             final byte[] paddedSha = new byte[32];
             for(int i= 0; i < paddedSha.length; i++) {
@@ -182,7 +181,7 @@ public class SignedMessage {
 
             final byte[] sig = cipher.doFinal(paddedSha);
 
-            LOGGER.trace("Sig = {}", Hex.encodeHex(sig));
+            LOGGER.trace("Sig = " + Hex.encodeHex(sig));
 
             byteArrayOutputStream.write(IV);
             byteArrayOutputStream.write(sig);
@@ -190,7 +189,7 @@ public class SignedMessage {
 
             final byte[] data = byteArrayOutputStream.toByteArray();
 
-            LOGGER.trace("Body = {}", Hex.encodeHex(data));
+            LOGGER.trace("Body = " + Hex.encodeHex(data));
             return Optional.of(data);
 
         } catch (NoSuchAlgorithmException e) {
