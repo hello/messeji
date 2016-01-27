@@ -58,21 +58,37 @@
   [^Messeji$ReceiveMessageRequest receive-message-request]
   (seq (.getMessageReadIdList receive-message-request)))
 
+(defn- valid-key?
+  [signed-message key]
+  (let [error-optional (.validateWithKey signed-message key)
+        error? (.isPresent error-optional)]
+    (when error?
+      (log/debug (-> error-optional .get .message)))
+    (not error?)))
+
+(defn- valid-message?
+  [key-store sense-id signed-message]
+  (let [key-optional (.get key-store sense-id)]
+    (when-not (.isPresent key-optional)
+      (middleware/throw-invalid-request))
+    (valid-key? signed-message (.get key-optional))))
+
+;; TODO
+(defn- ack-and-receive
+  [connections message-store timeout receive-message-request]
+  (db/acknowledge message-store (acked-message-ids receive-message-request))
+  (receive-messages connections message-store timeout (.getSenseId receive-message-request)))
+
 (defn handle-receive
   [connections key-store message-store timeout request]
   (let [sense-id (request-sense-id request)
         signed-message (-> request :body bs/to-byte-array SignedMessage/parse)
         receive-message-request (Messeji$ReceiveMessageRequest/parseFrom
-                                  (.body signed-message))
-        key-optional (.get key-store sense-id)
-        message-ids (acked-message-ids receive-message-request)]
-    (when-not (and (= sense-id (.getSenseId receive-message-request))
-                   (.isPresent key-optional))
+                                  (.body signed-message))]
+    (when-not (= sense-id (.getSenseId receive-message-request))
       (middleware/throw-invalid-request))
-    (if (.validateWithKey signed-message (.get key-optional))
-      (do
-        (db/acknowledge message-store message-ids)
-        (receive-messages connections message-store timeout sense-id))
+    (if (valid-message? key-store sense-id signed-message)
+      (ack-and-receive connections message-store timeout receive-message-request)
       {:status 401, :body ""})))
 
 (defn- send-messages!
