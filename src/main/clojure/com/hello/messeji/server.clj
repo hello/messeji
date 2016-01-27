@@ -69,7 +69,6 @@
                    (.isPresent key-optional))
       (middleware/throw-invalid-request))
     (if (.validateWithKey signed-message (.get key-optional))
-      ;; TODO throw this as well and catch/rethrow all ex-info with :status
       (do
         (db/acknowledge message-store message-ids)
         (receive-messages connections message-store timeout sense-id))

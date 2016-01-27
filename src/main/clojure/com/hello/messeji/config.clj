@@ -1,6 +1,15 @@
 (ns com.hello.messeji.config
   (:require
-    [clojure.edn :as edn]))
+    [clojure.edn :as edn]
+    [schema.core :as s]))
+
+(def Config
+  "Schema for the configuration map."
+  {:key-store {:table s/Str
+               :endpoint s/Str}
+   :http {:port s/Int
+          :receive-timeout s/Int}
+   :max-message-age-millis s/Int})
 
 (defn- deep-merge
   "Deeply merges maps so that nested maps are combined rather than replaced.
@@ -26,4 +35,5 @@
   [file-names]
   (->> file-names
     (map read-edn-file)
-    (apply deep-merge)))
+    (apply deep-merge)
+    (s/validate Config)))
