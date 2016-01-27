@@ -91,7 +91,7 @@
       (ack-and-receive connections message-store timeout receive-message-request)
       {:status 401, :body ""})))
 
-(defn- send-messages!
+(defn- send-messages
   [connection-deferred messages]
   (when (and connection-deferred
              (not (deferred/realized? connection-deferred)))
@@ -106,7 +106,7 @@
   (let [sense-id (request-sense-id request)
         message (Messeji$Message/parseFrom (:body request))
         message-with-id (db/create-message message-store sense-id message)]
-    (send-messages! (get @connections-atom sense-id) [message-with-id])
+    (send-messages (get @connections-atom sense-id) [message-with-id])
     {:status 201
      :body message-with-id}))
 
@@ -127,7 +127,19 @@
        wrap-content-type
        middleware/wrap-500)))
 
-(defn start-server!
+(defrecord Service
+  [connections server ddb-clients]
+
+  java.io.Closeable
+  (close [this]
+    ;; Calls NioEventLoopGroup.shutdownGracefully()
+    (.close server)
+    (doseq [[_ client] ddb-clients]
+      (.shutdown client))
+    (reset! connections nil)))
+
+(defn start-server
+  "Performs setup, starts server, and returns a java.io.Closeable record."
   [config-map]
   (let [connections (atom {})
         credentials-provider (DefaultAWSCredentialsProviderChain.)
@@ -147,14 +159,15 @@
         server (http/start-server
                  (handler connections key-store message-store timeout)
                  {:port (get-in config-map [:http :port])})]
-    {:connections connections
-     :server server
-     :ddb-clients {:key-store ks-ddb-client}}))
+    (->Service
+      connections
+      server
+      {:key-store ks-ddb-client})))
 
 (defn -main
   [config-file & args]
   (let [config (messeji-config/read (cons config-file args))
-        server (start-server! config)]
+        server (start-server config)]
     (log/debug "Using the following config: " config)
     (log/debug "Server: " server)
     server))
