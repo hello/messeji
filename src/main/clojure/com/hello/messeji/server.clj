@@ -166,7 +166,7 @@
 
 (defn -main
   [config-file & args]
-  (let [config (messeji-config/read (cons config-file args))
+  (let [config (apply messeji-config/read config-file args)
         server (start-server config)]
     (log/debug "Using the following config: " config)
     (log/debug "Server: " server)

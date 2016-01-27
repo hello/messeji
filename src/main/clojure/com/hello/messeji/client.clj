@@ -2,7 +2,8 @@
   (:require
     [aleph.http :as http]
     [byte-streams :as bs]
-    [clojure.edn :as edn])
+    [clojure.edn :as edn]
+    [com.hello.messeji.config :as config])
   (:import
     [com.hello.messeji.api
       Messeji$ReceiveMessageRequest
@@ -10,22 +11,22 @@
       Messeji$Message$Type
       Messeji$BatchMessage]
     [com.hello.suripu.core.util HelloHttpHeader]
-    [com.hello.suripu.service SignedMessage]))
-
-(def test-key-bytes (.getBytes "1234567891234567"))
+    [com.hello.suripu.service SignedMessage]
+    [org.apache.commons.codec.binary Hex]))
 
 (defn localhost
   ([]
     (localhost "resources/config/dev.edn"))
   ([config-file-name]
-    (let [port (-> config-file-name slurp edn/read-string :http :port)]
+    (let [port (get-in (config/read config-file-name) [:http :port])]
       (str "http://localhost:" port))))
 
 (defn sign-protobuf
   "Given a protobuf object and the bytes of an aes key,
   return a valid signed message."
-  [proto-message key-bytes]
+  [proto-message key]
   (let [body (.toByteArray proto-message)
+        key-bytes (Hex/decodeHex (.toCharArray key))
         signed (-> body (SignedMessage/sign key-bytes) .get)
         iv (->> signed (take 16) byte-array)
         sig (->> signed (drop 16) (take 32) byte-array)]
@@ -58,10 +59,10 @@
     (.build builder)))
 
 (defn receive-messages
-  [host sense-id acked-message-ids]
+  [host sense-id key acked-message-ids]
   (let [url (str host "/receive")
         request-proto (receive-message-request sense-id acked-message-ids)
-        signed-proto (sign-protobuf request-proto test-key-bytes)]
+        signed-proto (sign-protobuf request-proto key)]
     (-> (post url sense-id signed-proto)
       :body
       Messeji$BatchMessage/parseFrom)))
@@ -73,12 +74,12 @@
     (map #(.getMessageId %))))
 
 (defn start-sense
-  ^java.io.Closeable [host sense-id callback-fn]
+  ^java.io.Closeable [host sense-id key callback-fn]
   (let [running (atom true)]
     (future
       (loop [message-ids []]
         (when @running
-          (let [batch-message (receive-messages host sense-id message-ids)
+          (let [batch-message (receive-messages host sense-id key message-ids)
                 message-ids (batch-message-ids batch-message)]
             (when (seq message-ids)
               (callback-fn message-ids))

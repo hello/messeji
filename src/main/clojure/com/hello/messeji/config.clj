@@ -32,7 +32,7 @@
   "Given a seq of file names, return the parsed config map.
   Files will be deeply merged over each other, so (read [\"x.edn\" \"y.edn\"])
   means that values from y.edn will override those in x.edn."
-  [file-names]
+  [& file-names]
   (->> file-names
     (map read-edn-file)
     (apply deep-merge)
