@@ -8,6 +8,7 @@
     [com.hello.messeji.config :as messeji-config]
     [com.hello.messeji.db :as db]
     [com.hello.messeji.db.in-mem :as mem]
+    [com.hello.messeji.db.key-store-ddb :as ksddb]
     [com.hello.messeji.middleware :as middleware]
     [compojure.core :as compojure :refer [GET POST]]
     [manifold.deferred :as deferred]
@@ -17,9 +18,7 @@
     [com.amazonaws ClientConfiguration]
     [com.amazonaws.auth DefaultAWSCredentialsProviderChain]
     [com.amazonaws.services.dynamodbv2 AmazonDynamoDBClient]
-    [com.hello.suripu.core.db KeyStoreDynamoDB]
-    [com.hello.suripu.core.util HelloHttpHeader]
-    [com.hello.suripu.service SignedMessage]
+    [com.hello.messeji SignedMessage]
     [com.hello.messeji.api
       Messeji$ReceiveMessageRequest
       Messeji$Message
@@ -51,7 +50,7 @@
 
 (defn- request-sense-id
   [request]
-  (let [sense-id (-> request :headers (get HelloHttpHeader/SENSE_ID))]
+  (let [sense-id (-> request :headers (get "X-Hello-Sense-Id"))]
     (or sense-id (middleware/throw-invalid-request))))
 
 (defn- acked-message-ids
@@ -68,12 +67,11 @@
 
 (defn- valid-message?
   [key-store sense-id signed-message]
-  (let [key-optional (.get key-store sense-id)]
-    (when-not (.isPresent key-optional)
+  (let [key (db/get-key key-store sense-id)]
+    (when-not key
       (middleware/throw-invalid-request))
-    (valid-key? signed-message (.get key-optional))))
+    (valid-key? signed-message key)))
 
-;; TODO
 (defn- ack-and-receive
   [connections message-store timeout receive-message-request]
   (db/acknowledge message-store (acked-message-ids receive-message-request))
@@ -149,11 +147,9 @@
                         (withMaxConnections 100))
         ks-ddb-client (doto (AmazonDynamoDBClient. credentials-provider client-config)
                         (.setEndpoint (get-in config-map [:key-store :endpoint])))
-        key-store (KeyStoreDynamoDB.
-                    ks-ddb-client
+        key-store (ksddb/key-store
                     (get-in config-map [:key-store :table])
-                    (.getBytes "1234567891234567") ; TODO remove default key
-                    (int 120)) ; 2 minutes for cache
+                    ks-ddb-client)
         timeout (get-in config-map [:http :receive-timeout])
         message-store (mem/mk-message-store (:max-message-age-millis config-map))
         server (http/start-server

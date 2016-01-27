@@ -14,3 +14,8 @@
     [this message-ids]
     "Mark all message-ids as acknowledged.
     Now these messages won't be retrieved from `unacked-messages`."))
+
+(defprotocol KeyStore
+  (get-key
+    [this sense-id]
+    "Get and decode a key from the key store for the sense-id."))

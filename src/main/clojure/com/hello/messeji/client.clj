@@ -10,8 +10,7 @@
       Messeji$Message
       Messeji$Message$Type
       Messeji$BatchMessage]
-    [com.hello.suripu.core.util HelloHttpHeader]
-    [com.hello.suripu.service SignedMessage]
+    [com.hello.messeji SignedMessage]
     [org.apache.commons.codec.binary Hex]))
 
 (defn localhost
@@ -37,7 +36,7 @@
   @(http/post
     url
     {:body body
-     :headers {HelloHttpHeader/SENSE_ID sense-id}}))
+     :headers {"X-Hello-Sense-Id" sense-id}}))
 
 (defn send-message
   [host sense-id]

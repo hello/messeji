@@ -1,6 +1,7 @@
 (ns com.hello.messeji.middleware
   (:require
-    [byte-streams :as bs])
+    [byte-streams :as bs]
+    [clojure.tools.logging :as log])
   (:import
     [com.google.protobuf
       InvalidProtocolBufferException
@@ -52,12 +53,11 @@
         {:status 500
          :body ""}))))
 
-;; TODO obviously better logging in the future
 (defn wrap-log-request
   "Log all request bodies."
   [handler]
   (fn [request]
-    (prn request)
+    (log/trace request)
     (handler request)))
 
 (defn throw-invalid-request
