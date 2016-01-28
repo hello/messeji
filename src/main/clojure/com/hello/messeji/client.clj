@@ -68,7 +68,7 @@
 
 (defn- batch-message-ids
   [batch-message]
-  (->> batch-message
+  (some->> batch-message
     .getMessageList
     (map #(.getMessageId %))))
 
@@ -78,7 +78,13 @@
     (future
       (loop [message-ids []]
         (when @running
-          (let [batch-message (receive-messages host sense-id key message-ids)
+          (let [batch-message (try
+                                (receive-messages host sense-id key message-ids)
+                                (catch Exception e
+                                  ;; Print the exception and sleep for a bit
+                                  ;; before retrying.
+                                  (prn e)
+                                  (Thread/sleep 5000)))
                 message-ids (batch-message-ids batch-message)]
             (when (seq message-ids)
               (callback-fn message-ids))
