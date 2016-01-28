@@ -21,15 +21,15 @@
      :acknowledged? false
      :timestamp (System/nanoTime)}))
 
-(defn- ack-message-ids
-  [db-map message-ids]
-  (reduce #(assoc-in %1 [%2 :acknowledged?] true) db-map message-ids))
+(defn- assoc-in-message-ids
+  [db-map k v message-ids]
+  (reduce #(assoc-in %1 [%2 k] v) db-map message-ids))
 
 (defrecord InMemoryMessageStore
   [database-ref latest-id-ref max-message-age-millis]
 
   db/MessageStore
-  (db/create-message
+  (create-message
     [_ sense-id message]
     (dosync
       (let [id (alter latest-id-ref inc)
@@ -37,7 +37,7 @@
         (alter database-ref add-message sense-id id message-with-id)
         message-with-id)))
 
-  (db/unacked-messages
+  (unacked-messages
     [_ sense-id]
     (->> @database-ref
       vals
@@ -47,10 +47,15 @@
                     (not (:acknowledged? %))))
       (map :message)))
 
-  (db/acknowledge
+  (mark-sent
     [_ message-ids]
     (dosync
-      (alter database-ref ack-message-ids message-ids))))
+      (alter database-ref assoc-in-message-ids :sent? true message-ids)))
+
+  (acknowledge
+    [_ message-ids]
+    (dosync
+      (alter database-ref assoc-in-message-ids :acknowledged? true message-ids))))
 
 (defn mk-message-store
   [max-message-age-millis]

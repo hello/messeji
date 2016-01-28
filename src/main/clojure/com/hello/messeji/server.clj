@@ -37,10 +37,18 @@
   {:body (batch-message messages)
    :status 200})
 
+(defn- mark-sent
+  [message-store messages]
+  (db/mark-sent
+    message-store
+    (map #(.getMessageId ^Messeji$Message %) messages)))
+
 (defn- receive-messages
   [connections-atom message-store timeout sense-id]
   (if-let [unacked-messages (seq (db/unacked-messages message-store sense-id))]
-    (batch-message-response unacked-messages)
+    (do
+      (mark-sent message-store unacked-messages)
+      (batch-message-response unacked-messages))
     (let [deferred-response (deferred/deferred)]
       (swap! connections-atom assoc sense-id deferred-response)
       (deferred/timeout!
@@ -90,13 +98,15 @@
       {:status 401, :body ""})))
 
 (defn- send-messages
-  [connection-deferred messages]
+  [message-store connection-deferred messages]
   (when (and connection-deferred
              (not (deferred/realized? connection-deferred)))
     (when-let [delivery (deferred/success!
                           connection-deferred
                           (batch-message-response messages))]
-      ; TODO mark sent
+      ;; If delivery is true, then we haven't previously delivered anything
+      ;; and the connection hasn't yet been timed out.
+      (mark-sent message-store messages)
       delivery)))
 
 (defn handle-send
@@ -104,7 +114,7 @@
   (let [sense-id (request-sense-id request)
         message (Messeji$Message/parseFrom (:body request))
         message-with-id (db/create-message message-store sense-id message)]
-    (send-messages (get @connections-atom sense-id) [message-with-id])
+    (send-messages message-store (get @connections-atom sense-id) [message-with-id])
     {:status 201
      :body message-with-id}))
 

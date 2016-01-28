@@ -10,6 +10,10 @@
     [this sense-id]
     "Retrieve all unacked messages for sense-id that are younger than timeout.")
 
+  (mark-sent
+    [this message-ids]
+    "Mark all message-ids as sent.")
+
   (acknowledge
     [this message-ids]
     "Mark all message-ids as acknowledged.
