@@ -5,8 +5,13 @@
                  [org.clojure/tools.logging "0.3.1"]
                  [aleph "0.4.1-beta2"]
                  [compojure "1.4.0"]
-                 [com.hello.suripu/suripu-service "0.6.65"]
+                 [com.amazonaws/aws-java-sdk-dynamodb "1.10.49"]
+                 [com.google.guava/guava "18.0"]
                  [com.google.protobuf/protobuf-java "2.6.1"]
+                 [log4j/log4j "1.2.17" :exclusions [javax.mail/mail
+                                                    javax.jms/jms
+                                                    com.sun.jmdk/jmxtools
+                                                    com.sun.jmx/jmxri]]
                  [prismatic/schema "1.0.4"]]
   :plugins [[s3-wagon-private "1.2.0"]]
   :source-paths ["src" "src/main/clojure"]
