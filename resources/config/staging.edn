@@ -1,0 +1,5 @@
+{:key-store {:table "key_store"
+             :endpoint "http://dynamodb.us-east-1.amazonaws.com"}
+ :http {:port 10000
+        :receive-timeout 60000}
+ :max-message-age-millis 10000}
