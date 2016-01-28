@@ -14,6 +14,8 @@
     [org.apache.commons.codec.binary Hex]))
 
 (defn localhost
+  "Reads the config file (default is dev.edn) and concatenate the port from
+  that config with localhost."
   ([]
     (localhost "resources/config/dev.edn"))
   ([config-file-name]
@@ -39,6 +41,8 @@
      :headers {"X-Hello-Sense-Id" sense-id}}))
 
 (defn send-message
+  "Send a message to the given sense-id,
+  returning a Message object from the server."
   [host sense-id]
   (let [url (str host "/send")
         order (System/nanoTime)
@@ -47,7 +51,9 @@
                   (setOrder order)
                   (setType Messeji$Message$Type/SLEEP_SOUNDS)
                   build)]
-    (post url sense-id (.toByteArray message))))
+    (-> (post url sense-id (.toByteArray message))
+      :body
+      Messeji$Message/parseFrom)))
 
 (defn- receive-message-request
   [sense-id acked-message-ids]
@@ -58,6 +64,15 @@
     (.build builder)))
 
 (defn receive-messages
+  "Blocks waiting for new messages from server.
+
+  Args:
+    - host (String)
+    - sense-id (String)
+    - AES key (String)
+    - acked-message-ids ([Int]) - message ids to acknowledge in the ReceiveMessageRequest
+
+  Returns BatchMessage."
   [host sense-id key acked-message-ids]
   (let [url (str host "/receive")
         request-proto (receive-message-request sense-id acked-message-ids)
@@ -66,13 +81,20 @@
       :body
       Messeji$BatchMessage/parseFrom)))
 
-(defn- batch-message-ids
+(defn- batch-messages
   [batch-message]
   (some->> batch-message
     .getMessageList
-    (map #(.getMessageId %))))
+    seq))
 
 (defn start-sense
+  "Starts a new sense thread that receives messages and acknowledges read messages
+  as they come in. The first 3 arguments are the same as receive-messages.
+
+  callback-fn is a function that will be called on any new messages that arrive.
+  The messages are passed as a seq of Message objects.
+
+  Returns a Closeable object. Call .close() to shut down the polling thread."
   ^java.io.Closeable [host sense-id key callback-fn]
   (let [running (atom true)]
     (future
@@ -85,10 +107,10 @@
                                   ;; before retrying.
                                   (prn e)
                                   (Thread/sleep 5000)))
-                message-ids (batch-message-ids batch-message)]
-            (when (seq message-ids)
-              (callback-fn message-ids))
-            (recur message-ids)))))
+                messages (batch-messages batch-message)]
+            (when messages
+              (callback-fn messages))
+            (recur (map #(.getMessageId %) messages))))))
     (reify java.io.Closeable
       (close [this]
         (reset! running false)))))
