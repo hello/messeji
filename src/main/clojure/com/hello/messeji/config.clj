@@ -1,7 +1,8 @@
 (ns com.hello.messeji.config
   (:require
     [clojure.edn :as edn]
-    [schema.core :as s]))
+    [schema.core :as s])
+  (:refer-clojure :exclude [read]))
 
 (def Config
   "Schema for the configuration map."
