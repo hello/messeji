@@ -11,6 +11,7 @@
     [com.hello.messeji.db.key-store-ddb :as ksddb]
     [com.hello.messeji.middleware :as middleware]
     [compojure.core :as compojure :refer [GET POST]]
+    [compojure.route :as route]
     [manifold.deferred :as deferred]
     [ring.middleware.params :as params]
     [ring.middleware.content-type :refer [wrap-content-type]])
@@ -122,11 +123,12 @@
   [connections key-store message-store timeout]
   (let [routes
         (compojure/routes
-          (GET "/healthz" {:status 200 :body "ok"})
+          (GET "/healthz" _ {:status 200 :body "ok"})
           (POST "/receive" request
             (handle-receive connections key-store message-store timeout request))
           (POST "/send" request
-            (handle-send connections message-store request)))]
+            (handle-send connections message-store request))
+          (route/not-found ""))]
     (-> routes
        middleware/wrap-log-request
        middleware/wrap-protobuf-request
