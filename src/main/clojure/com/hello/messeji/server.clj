@@ -24,7 +24,8 @@
       Messeji$ReceiveMessageRequest
       Messeji$Message
       Messeji$Message$Type
-      Messeji$BatchMessage]))
+      Messeji$BatchMessage]
+    [org.apache.log4j PropertyConfigurator]))
 
 (defn- batch-message
   [messages]
@@ -148,9 +149,18 @@
       (.shutdown client))
     (reset! connections nil)))
 
+(defn- configure-logging
+  [{:keys [property-file-name properties]}]
+  (with-open [reader (clojure.java.io/reader property-file-name)]
+    (let [prop (doto (java.util.Properties.)
+                  (.load reader)
+                  (.put "LOG_LEVEL" (:log-level properties)))]
+      (PropertyConfigurator/configure prop))))
+
 (defn start-server
   "Performs setup, starts server, and returns a java.io.Closeable record."
   [config-map]
+  (configure-logging (:logging config-map))
   (let [connections (atom {})
         credentials-provider (DefaultAWSCredentialsProviderChain.)
         client-config (.. (ClientConfiguration.)
@@ -176,6 +186,6 @@
   [config-file & args]
   (let [config (apply messeji-config/read config-file args)
         server (start-server config)]
-    (log/debug "Using the following config: " config)
-    (log/debug "Server: " server)
+    (log/info "Using the following config: " config)
+    (log/info "Server: " server)
     server))
