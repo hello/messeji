@@ -22,12 +22,12 @@
 
 (defn wrap-protobuf-response
   "If a protobuf message object is returned in the response body,
-  convert it to an InputStream matching the Ring spec."
+  convert it to a byte[]."
   [handler]
   (fn [request]
-    (let [response (handler request)]
-      (if (instance? Message (:body response))
-        (update-in response [:body] #(-> % .toByteArray bs/to-input-stream))
+    (let [{:keys [body] :as response} (handler request)]
+      (if (instance? Message body)
+        (assoc response :body (.toByteArray body))
         response))))
 
 (defn wrap-invalid-request

@@ -46,7 +46,7 @@
                               .toByteArray
                               (SignedMessage/sign key))]
     (if (.isPresent signed-response-opt)
-      {:body (bs/to-input-stream (.get signed-response-opt))
+      {:body (.get signed-response-opt)
        :status 200}
       (do
         (log/error "Failed signing message.")
