@@ -2496,6 +2496,646 @@ public final class Messeji {
     // @@protoc_insertion_point(class_scope:BatchMessage)
   }
 
+  public interface MessageStatusOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:MessageStatus)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>required int64 message_id = 1;</code>
+     */
+    boolean hasMessageId();
+    /**
+     * <code>required int64 message_id = 1;</code>
+     */
+    long getMessageId();
+
+    /**
+     * <code>required .MessageStatus.State state = 2;</code>
+     */
+    boolean hasState();
+    /**
+     * <code>required .MessageStatus.State state = 2;</code>
+     */
+    com.hello.messeji.api.Messeji.MessageStatus.State getState();
+  }
+  /**
+   * Protobuf type {@code MessageStatus}
+   */
+  public static final class MessageStatus extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:MessageStatus)
+      MessageStatusOrBuilder {
+    // Use MessageStatus.newBuilder() to construct.
+    private MessageStatus(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private MessageStatus(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final MessageStatus defaultInstance;
+    public static MessageStatus getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public MessageStatus getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private MessageStatus(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              messageId_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              int rawValue = input.readEnum();
+              com.hello.messeji.api.Messeji.MessageStatus.State value = com.hello.messeji.api.Messeji.MessageStatus.State.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(2, rawValue);
+              } else {
+                bitField0_ |= 0x00000002;
+                state_ = value;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.hello.messeji.api.Messeji.internal_static_MessageStatus_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.hello.messeji.api.Messeji.internal_static_MessageStatus_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.hello.messeji.api.Messeji.MessageStatus.class, com.hello.messeji.api.Messeji.MessageStatus.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<MessageStatus> PARSER =
+        new com.google.protobuf.AbstractParser<MessageStatus>() {
+      public MessageStatus parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new MessageStatus(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<MessageStatus> getParserForType() {
+      return PARSER;
+    }
+
+    /**
+     * Protobuf enum {@code MessageStatus.State}
+     */
+    public enum State
+        implements com.google.protobuf.ProtocolMessageEnum {
+      /**
+       * <code>PENDING = 0;</code>
+       *
+       * <pre>
+       *The initial state of a message when it is first created, meaning it is still in flight but potentially not yet sent.
+       *This is a non-terminal state.
+       * </pre>
+       */
+      PENDING(0, 0),
+      /**
+       * <code>SENT = 1;</code>
+       *
+       * <pre>
+       *Message has attempted to be sent to a recipient, but it has not yet been acknowledged as being received.
+       *There is no guarantee that the message will ever be received.
+       *If a message is idempotent, the sender may want to attempt to re-send, i.e. to ensure that the white noise
+       *turns off. This state may be either non-terminal or terminal.
+       * </pre>
+       */
+      SENT(1, 1),
+      /**
+       * <code>RECEIVED = 2;</code>
+       *
+       * <pre>
+       * The message has been received by the intended recipient and acknowledged. This is a terminal state.
+       * </pre>
+       */
+      RECEIVED(2, 2),
+      /**
+       * <code>EXPIRED = 3;</code>
+       *
+       * <pre>
+       * The message age exceeded its timeout and will not be delivered. Terminal state.
+       * </pre>
+       */
+      EXPIRED(3, 3),
+      ;
+
+      /**
+       * <code>PENDING = 0;</code>
+       *
+       * <pre>
+       *The initial state of a message when it is first created, meaning it is still in flight but potentially not yet sent.
+       *This is a non-terminal state.
+       * </pre>
+       */
+      public static final int PENDING_VALUE = 0;
+      /**
+       * <code>SENT = 1;</code>
+       *
+       * <pre>
+       *Message has attempted to be sent to a recipient, but it has not yet been acknowledged as being received.
+       *There is no guarantee that the message will ever be received.
+       *If a message is idempotent, the sender may want to attempt to re-send, i.e. to ensure that the white noise
+       *turns off. This state may be either non-terminal or terminal.
+       * </pre>
+       */
+      public static final int SENT_VALUE = 1;
+      /**
+       * <code>RECEIVED = 2;</code>
+       *
+       * <pre>
+       * The message has been received by the intended recipient and acknowledged. This is a terminal state.
+       * </pre>
+       */
+      public static final int RECEIVED_VALUE = 2;
+      /**
+       * <code>EXPIRED = 3;</code>
+       *
+       * <pre>
+       * The message age exceeded its timeout and will not be delivered. Terminal state.
+       * </pre>
+       */
+      public static final int EXPIRED_VALUE = 3;
+
+
+      public final int getNumber() { return value; }
+
+      public static State valueOf(int value) {
+        switch (value) {
+          case 0: return PENDING;
+          case 1: return SENT;
+          case 2: return RECEIVED;
+          case 3: return EXPIRED;
+          default: return null;
+        }
+      }
+
+      public static com.google.protobuf.Internal.EnumLiteMap<State>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static com.google.protobuf.Internal.EnumLiteMap<State>
+          internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<State>() {
+              public State findValueByNumber(int number) {
+                return State.valueOf(number);
+              }
+            };
+
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        return getDescriptor().getValues().get(index);
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return com.hello.messeji.api.Messeji.MessageStatus.getDescriptor().getEnumTypes().get(0);
+      }
+
+      private static final State[] VALUES = values();
+
+      public static State valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        return VALUES[desc.getIndex()];
+      }
+
+      private final int index;
+      private final int value;
+
+      private State(int index, int value) {
+        this.index = index;
+        this.value = value;
+      }
+
+      // @@protoc_insertion_point(enum_scope:MessageStatus.State)
+    }
+
+    private int bitField0_;
+    public static final int MESSAGE_ID_FIELD_NUMBER = 1;
+    private long messageId_;
+    /**
+     * <code>required int64 message_id = 1;</code>
+     */
+    public boolean hasMessageId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>required int64 message_id = 1;</code>
+     */
+    public long getMessageId() {
+      return messageId_;
+    }
+
+    public static final int STATE_FIELD_NUMBER = 2;
+    private com.hello.messeji.api.Messeji.MessageStatus.State state_;
+    /**
+     * <code>required .MessageStatus.State state = 2;</code>
+     */
+    public boolean hasState() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>required .MessageStatus.State state = 2;</code>
+     */
+    public com.hello.messeji.api.Messeji.MessageStatus.State getState() {
+      return state_;
+    }
+
+    private void initFields() {
+      messageId_ = 0L;
+      state_ = com.hello.messeji.api.Messeji.MessageStatus.State.PENDING;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      if (!hasMessageId()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasState()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, messageId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeEnum(2, state_.getNumber());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, messageId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(2, state_.getNumber());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static com.hello.messeji.api.Messeji.MessageStatus parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.hello.messeji.api.Messeji.MessageStatus parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static com.hello.messeji.api.Messeji.MessageStatus parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.hello.messeji.api.Messeji.MessageStatus parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static com.hello.messeji.api.Messeji.MessageStatus parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static com.hello.messeji.api.Messeji.MessageStatus parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static com.hello.messeji.api.Messeji.MessageStatus parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static com.hello.messeji.api.Messeji.MessageStatus parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static com.hello.messeji.api.Messeji.MessageStatus parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static com.hello.messeji.api.Messeji.MessageStatus parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.hello.messeji.api.Messeji.MessageStatus prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code MessageStatus}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:MessageStatus)
+        com.hello.messeji.api.Messeji.MessageStatusOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return com.hello.messeji.api.Messeji.internal_static_MessageStatus_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return com.hello.messeji.api.Messeji.internal_static_MessageStatus_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.hello.messeji.api.Messeji.MessageStatus.class, com.hello.messeji.api.Messeji.MessageStatus.Builder.class);
+      }
+
+      // Construct using com.hello.messeji.api.Messeji.MessageStatus.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        messageId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        state_ = com.hello.messeji.api.Messeji.MessageStatus.State.PENDING;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.hello.messeji.api.Messeji.internal_static_MessageStatus_descriptor;
+      }
+
+      public com.hello.messeji.api.Messeji.MessageStatus getDefaultInstanceForType() {
+        return com.hello.messeji.api.Messeji.MessageStatus.getDefaultInstance();
+      }
+
+      public com.hello.messeji.api.Messeji.MessageStatus build() {
+        com.hello.messeji.api.Messeji.MessageStatus result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public com.hello.messeji.api.Messeji.MessageStatus buildPartial() {
+        com.hello.messeji.api.Messeji.MessageStatus result = new com.hello.messeji.api.Messeji.MessageStatus(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.messageId_ = messageId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.state_ = state_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.hello.messeji.api.Messeji.MessageStatus) {
+          return mergeFrom((com.hello.messeji.api.Messeji.MessageStatus)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(com.hello.messeji.api.Messeji.MessageStatus other) {
+        if (other == com.hello.messeji.api.Messeji.MessageStatus.getDefaultInstance()) return this;
+        if (other.hasMessageId()) {
+          setMessageId(other.getMessageId());
+        }
+        if (other.hasState()) {
+          setState(other.getState());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        if (!hasMessageId()) {
+          
+          return false;
+        }
+        if (!hasState()) {
+          
+          return false;
+        }
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.hello.messeji.api.Messeji.MessageStatus parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.hello.messeji.api.Messeji.MessageStatus) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long messageId_ ;
+      /**
+       * <code>required int64 message_id = 1;</code>
+       */
+      public boolean hasMessageId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>required int64 message_id = 1;</code>
+       */
+      public long getMessageId() {
+        return messageId_;
+      }
+      /**
+       * <code>required int64 message_id = 1;</code>
+       */
+      public Builder setMessageId(long value) {
+        bitField0_ |= 0x00000001;
+        messageId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required int64 message_id = 1;</code>
+       */
+      public Builder clearMessageId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        messageId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private com.hello.messeji.api.Messeji.MessageStatus.State state_ = com.hello.messeji.api.Messeji.MessageStatus.State.PENDING;
+      /**
+       * <code>required .MessageStatus.State state = 2;</code>
+       */
+      public boolean hasState() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>required .MessageStatus.State state = 2;</code>
+       */
+      public com.hello.messeji.api.Messeji.MessageStatus.State getState() {
+        return state_;
+      }
+      /**
+       * <code>required .MessageStatus.State state = 2;</code>
+       */
+      public Builder setState(com.hello.messeji.api.Messeji.MessageStatus.State value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        bitField0_ |= 0x00000002;
+        state_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required .MessageStatus.State state = 2;</code>
+       */
+      public Builder clearState() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        state_ = com.hello.messeji.api.Messeji.MessageStatus.State.PENDING;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:MessageStatus)
+    }
+
+    static {
+      defaultInstance = new MessageStatus(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:MessageStatus)
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_ReceiveMessageRequest_descriptor;
   private static
@@ -2511,6 +3151,11 @@ public final class Messeji {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_BatchMessage_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_MessageStatus_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_MessageStatus_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -2527,8 +3172,11 @@ public final class Messeji {
       "_id\030\003 \001(\003\022\033\n\004type\030\004 \002(\0162\r.Message.Type\0221" +
       "\n\024sleep_sounds_command\030\005 \001(\0132\023.SleepSoun" +
       "dsCommand\"\030\n\004Type\022\020\n\014SLEEP_SOUNDS\020\000\")\n\014B" +
-      "atchMessage\022\031\n\007message\030\001 \003(\0132\010.MessageB\027" +
-      "\n\025com.hello.messeji.api"
+      "atchMessage\022\031\n\007message\030\001 \003(\0132\010.Message\"\203" +
+      "\001\n\rMessageStatus\022\022\n\nmessage_id\030\001 \002(\003\022#\n\005" +
+      "state\030\002 \002(\0162\024.MessageStatus.State\"9\n\005Sta",
+      "te\022\013\n\007PENDING\020\000\022\010\n\004SENT\020\001\022\014\n\010RECEIVED\020\002\022" +
+      "\013\n\007EXPIRED\020\003B\027\n\025com.hello.messeji.api"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -2561,6 +3209,12 @@ public final class Messeji {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_BatchMessage_descriptor,
         new java.lang.String[] { "Message", });
+    internal_static_MessageStatus_descriptor =
+      getDescriptor().getMessageTypes().get(3);
+    internal_static_MessageStatus_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_MessageStatus_descriptor,
+        new java.lang.String[] { "MessageId", "State", });
     com.hello.messeji.api.SleepSounds.getDescriptor();
   }
 
