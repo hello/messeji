@@ -57,7 +57,7 @@
   "Log all request bodies."
   [handler]
   (fn [request]
-    (log/trace request)
+    (log/debug request)
     (handler request)))
 
 (defn throw-invalid-request
