@@ -2,6 +2,6 @@
              :endpoint "http://localhost:7777"}
  :http {:port 10000
         :receive-timeout 10000}
- :logging {:property-file-name "resources/log4j.properties"
+ :logging {:property-file-name "log4j.properties"
            :properties {:log-level "DEBUG"}}
  :max-message-age-millis 10000}
