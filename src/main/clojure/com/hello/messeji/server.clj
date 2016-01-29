@@ -27,6 +27,21 @@
       Messeji$BatchMessage]
     [org.apache.log4j PropertyConfigurator]))
 
+#_"
+final Optional<byte[]> signedResponse = SignedMessage.sign(syncResponse.toByteArray(), encryptionKey);
+if (!signedResponse.isPresent()) {
+    LOGGER.error(\"Failed signing message\");
+    return plainTextError(Response.Status.INTERNAL_SERVER_ERROR, \"\");
+}
+
+final int responseLength = signedResponse.get().length;
+if (responseLength > 2048) {
+    LOGGER.warn(\"response_size too large ({}) for device_id= {}\", responseLength, deviceName);
+}
+
+return signedResponse.get();
+"
+
 (defn- batch-message
   [messages]
   (let [builder (Messeji$BatchMessage/newBuilder)]
@@ -72,15 +87,16 @@
   (let [error-optional (.validateWithKey signed-message key)
         error? (.isPresent error-optional)]
     (when error?
-      (log/debug (-> error-optional .get .message)))
+      (log/error (-> error-optional .get .message)))
     (not error?)))
 
-(defn- valid-message?
-  [key-store sense-id signed-message]
+(defn- get-key-or-throw
+  [key-store sense-id]
   (let [key (db/get-key key-store sense-id)]
     (when-not key
+      (log/error "Key not found for sense-id" sense-id)
       (middleware/throw-invalid-request))
-    (valid-key? signed-message key)))
+    key))
 
 (defn- ack-and-receive
   [connections message-store timeout receive-message-request]
@@ -92,10 +108,11 @@
   (let [sense-id (request-sense-id request)
         signed-message (-> request :body bs/to-byte-array SignedMessage/parse)
         receive-message-request (Messeji$ReceiveMessageRequest/parseFrom
-                                  (.body signed-message))]
+                                  (.body signed-message))
+        key (get-key-or-throw key-store sense-id)]
     (when-not (= sense-id (.getSenseId receive-message-request))
       (middleware/throw-invalid-request))
-    (if (valid-message? key-store sense-id signed-message)
+    (if (valid-key? signed-message key)
       (ack-and-receive connections message-store timeout receive-message-request)
       {:status 401, :body ""})))
 
