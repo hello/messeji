@@ -3,14 +3,10 @@
     [aleph.http :as http]
     [byte-streams :as bs]
     [clojure.edn :as edn]
-    [com.hello.messeji.config :as config])
+    [com.hello.messeji.config :as config]
+    [com.hello.messeji.protobuf :as pb])
   (:import
-    [com.hello.messeji.api
-      Messeji$BatchMessage
-      Messeji$Message
-      Messeji$Message$Type
-      Messeji$MessageStatus
-      Messeji$ReceiveMessageRequest]
+    [com.hello.messeji.api Messeji$Message]
     [com.hello.messeji SignedMessage]
     [org.apache.commons.codec.binary Hex]))
 
@@ -46,15 +42,13 @@
   [host sense-id]
   (let [url (str host "/send")
         order (System/nanoTime)
-        message (.. (Messeji$Message/newBuilder)
-                  (setSenderId "clj-client")
-                  (setOrder order)
-                  (setType Messeji$Message$Type/SLEEP_SOUNDS)
-                  build)
+        message (pb/message {:sender-id "clj-client"
+                             :order order
+                             :type (pb/message-type :sleep-sounds)})
         response (post url sense-id (.toByteArray message))]
     (-> response
       :body
-      Messeji$Message/parseFrom)))
+      pb/message)))
 
 (defn get-status
   "Get message status from a message ID."
@@ -63,15 +57,7 @@
         response @(http/get url {})]
     (-> response
       :body
-      Messeji$MessageStatus/parseFrom)))
-
-(defn- receive-message-request
-  [sense-id acked-message-ids]
-  (let [builder (Messeji$ReceiveMessageRequest/newBuilder)]
-    (.setSenseId builder sense-id)
-    (doseq [id acked-message-ids]
-      (.addMessageReadId builder id))
-    (.build builder)))
+      pb/message-status)))
 
 (defn receive-messages
   "Blocks waiting for new messages from server.
@@ -85,14 +71,16 @@
   Returns BatchMessage."
   [host sense-id key acked-message-ids]
   (let [url (str host "/receive")
-        request-proto (receive-message-request sense-id acked-message-ids)
+        request-proto (pb/receive-message-request
+                        {:sense-id sense-id
+                         :message-read-ids acked-message-ids})
         signed-proto (sign-protobuf request-proto key)]
     (->> (post url sense-id signed-proto)
       :body
       bs/to-byte-array
       (drop (+ 16 32)) ;; drop injection vector and sig
       byte-array
-      Messeji$BatchMessage/parseFrom)))
+      pb/batch-message)))
 
 (defn- batch-messages
   [batch-message]

@@ -11,6 +11,7 @@
     [com.hello.messeji.db.in-mem :as mem]
     [com.hello.messeji.db.key-store-ddb :as ksddb]
     [com.hello.messeji.middleware :as middleware]
+    [com.hello.messeji.protobuf :as pb]
     [compojure.core :as compojure :refer [GET POST]]
     [compojure.route :as route]
     [manifold.deferred :as deferred]
@@ -28,21 +29,10 @@
       Messeji$BatchMessage]
     [org.apache.log4j PropertyConfigurator]))
 
-(defn- batch-message
-  ^Messeji$BatchMessage [messages]
-  (let [builder (Messeji$BatchMessage/newBuilder)]
-    (doseq [msg messages]
-      (.addMessage builder msg))
-    (.build builder)))
-
-(defn- sign
-  [^bytes key batch-message]
-  (let [signed-response-opt (SignedMessage/sign (.toByteArray batch-message) key)]))
-
 (defn- batch-message-response
   [^bytes key messages]
-  (let [signed-response-opt (-> messages
-                              batch-message
+  (let [signed-response-opt (-> {:messages messages}
+                              pb/batch-message
                               .toByteArray
                               (SignedMessage/sign key))]
     (if (.isPresent signed-response-opt)
@@ -110,7 +100,7 @@
   [connections key-store message-store timeout request]
   (let [sense-id (request-sense-id request)
         signed-message (-> request :body bs/to-byte-array SignedMessage/parse)
-        receive-message-request (Messeji$ReceiveMessageRequest/parseFrom
+        receive-message-request (pb/receive-message-request
                                   (.body signed-message))
         key (get-key-or-throw key-store sense-id)]
     (when-not (= sense-id (.getSenseId receive-message-request))
@@ -136,7 +126,7 @@
 (defn handle-send
   [connections-atom message-store request]
   (let [sense-id (request-sense-id request)
-        message (Messeji$Message/parseFrom (:body request))
+        message (pb/message (:body request))
         message-with-id (db/create-message message-store sense-id message)]
     (send-messages message-store (get @connections-atom sense-id) [message-with-id])
     {:status 201

@@ -10,11 +10,8 @@
     :timestamp
   }"
   (:require
-    [com.hello.messeji.db :as db])
-  (:import
-    [com.hello.messeji.api
-      Messeji$MessageStatus
-      Messeji$MessageStatus$State]))
+    [com.hello.messeji.db :as db]
+    [com.hello.messeji.protobuf :as pb]))
 
 (defn- timestamp
   []
@@ -42,17 +39,10 @@
 (defn- message-state
   [{:keys [message sent? acknowledged? timestamp]} max-age]
   (cond
-    acknowledged? Messeji$MessageStatus$State/RECEIVED
-    sent? Messeji$MessageStatus$State/SENT
-    (expired? max-age timestamp) Messeji$MessageStatus$State/EXPIRED
-    :else Messeji$MessageStatus$State/PENDING))
-
-(defn- message-status
-  [message-id state]
-  (.. (Messeji$MessageStatus/newBuilder)
-    (setMessageId message-id)
-    (setState state)
-    build))
+    acknowledged? :received
+    sent? :sent
+    (expired? max-age timestamp) :expired
+    :else :pending))
 
 (defrecord InMemoryMessageStore
   [database-ref latest-id-ref max-message-age-nanos]
@@ -80,7 +70,7 @@
     (when-let [state (some-> @database-ref
                        (get message-id)
                        (message-state max-message-age-nanos))]
-      (message-status message-id state)))
+      (pb/message-status {:message-id message-id :state state})))
 
   (mark-sent
     [_ message-ids]

@@ -1,5 +1,6 @@
 (ns com.hello.messeji.protobuf-test
   (:require
+    [byte-streams :as bs]
     [clojure.test :refer :all]
     [com.hello.messeji.protobuf :as pb])
   (:import
@@ -9,7 +10,8 @@
       Messeji$Message$Type
       Messeji$MessageStatus
       Messeji$MessageStatus$State
-      Messeji$ReceiveMessageRequest]))
+      Messeji$ReceiveMessageRequest
+      SleepSounds$SleepSoundsCommand]))
 
 (deftest test-message
   (testing "Do not require optional fields"
@@ -70,3 +72,30 @@
     (are [idx id] (= (.getMessageReadId rmr idx) id)
       0 id-1
       1 id-2)))
+
+(deftest test-parsing
+  (let [message (pb/message {:type (pb/message-type :sleep-sounds)
+                             :order 100
+                             :sender-id "sender"
+                             :message-id 1})
+        batch-message (pb/batch-message {:messages [message]})
+        message-status (pb/message-status {:message-id 1
+                                           :state (pb/message-status-state :pending)})
+        receive-message-request (pb/receive-message-request
+                                  {:sense-id "sense1"
+                                   :message-read-ids [1]})
+        sleep-sounds-command (pb/sleep-sounds-command {})]
+    (testing "byte[]"
+      (are [obj f] (-> obj .toByteArray f (.equals obj))
+        message pb/message
+        batch-message pb/batch-message
+        message-status pb/message-status
+        receive-message-request pb/receive-message-request
+        sleep-sounds-command pb/sleep-sounds-command))
+    (testing "InputStream"
+      (are [obj f] (-> obj .toByteArray bs/to-input-stream f (.equals obj))
+        message pb/message
+        batch-message pb/batch-message
+        message-status pb/message-status
+        receive-message-request pb/receive-message-request
+        sleep-sounds-command pb/sleep-sounds-command))))
