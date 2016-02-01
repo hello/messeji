@@ -51,7 +51,7 @@
                   (setType Messeji$Message$Type/SLEEP_SOUNDS)
                   build)
         response (post url sense-id (.toByteArray message))]
-    (-> (post url sense-id (.toByteArray message))
+    (-> response
       :body
       Messeji$Message/parseFrom)))
 
