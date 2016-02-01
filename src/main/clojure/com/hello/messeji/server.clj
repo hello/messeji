@@ -79,7 +79,7 @@
 (defn- request-sense-id
   [request]
   (let [sense-id (-> request :headers (get "X-Hello-Sense-Id"))]
-    (or sense-id (middleware/throw-invalid-request))))
+    (or sense-id (middleware/throw-invalid-request "No X-Hello-Sense-Id header."))))
 
 (defn- acked-message-ids
   [^Messeji$ReceiveMessageRequest receive-message-request]
@@ -114,7 +114,9 @@
                                   (.body signed-message))
         key (get-key-or-throw key-store sense-id)]
     (when-not (= sense-id (.getSenseId receive-message-request))
-      (middleware/throw-invalid-request))
+      (middleware/throw-invalid-request
+        (str "Sense ID in header is " sense-id
+             " but in body is " (.getSenseId receive-message-request))))
     (if (valid-key? signed-message key)
       (ack-and-receive connections message-store timeout receive-message-request key)
       {:status 401, :body ""})))
