@@ -3,6 +3,7 @@
   (:require
     [aleph.http :as http]
     [byte-streams :as bs]
+    [clojure.java.io :as io]
     [clojure.pprint :refer [pprint]]
     [clojure.tools.logging :as log]
     [com.hello.messeji.config :as messeji-config]
@@ -28,16 +29,28 @@
     [org.apache.log4j PropertyConfigurator]))
 
 (defn- batch-message
-  [messages]
+  ^Messeji$BatchMessage [messages]
   (let [builder (Messeji$BatchMessage/newBuilder)]
     (doseq [msg messages]
       (.addMessage builder msg))
     (.build builder)))
 
+(defn- sign
+  [^bytes key batch-message]
+  (let [signed-response-opt (SignedMessage/sign (.toByteArray batch-message) key)]))
+
 (defn- batch-message-response
-  [messages]
-  {:body (batch-message messages)
-   :status 200})
+  [^bytes key messages]
+  (let [signed-response-opt (-> messages
+                              batch-message
+                              .toByteArray
+                              (SignedMessage/sign key))]
+    (if (.isPresent signed-response-opt)
+      {:body (.get signed-response-opt)
+       :status 200}
+      (do
+        (log/error "Failed signing message.")
+        {:status 500 :body ""}))))
 
 (defn- mark-sent
   [message-store messages]
@@ -45,18 +58,23 @@
     message-store
     (map #(.getMessageId ^Messeji$Message %) messages)))
 
+(defn- deferred-connection
+  [deferred-response key]
+  {:deferred-response deferred-response
+   :key key})
+
 (defn- receive-messages
-  [connections-atom message-store timeout sense-id]
+  [connections-atom message-store timeout sense-id key]
   (if-let [unacked-messages (seq (db/unacked-messages message-store sense-id))]
     (do
       (mark-sent message-store unacked-messages)
-      (batch-message-response unacked-messages))
+      (batch-message-response key unacked-messages))
     (let [deferred-response (deferred/deferred)]
-      (swap! connections-atom assoc sense-id deferred-response)
+      (swap! connections-atom assoc sense-id (deferred-connection deferred-response key))
       (deferred/timeout!
         deferred-response
         timeout
-        (batch-message-response [])))))
+        (batch-message-response key [])))))
 
 (defn- request-sense-id
   [request]
@@ -72,40 +90,42 @@
   (let [error-optional (.validateWithKey signed-message key)
         error? (.isPresent error-optional)]
     (when error?
-      (log/debug (-> error-optional .get .message)))
+      (log/error (-> error-optional .get .message)))
     (not error?)))
 
-(defn- valid-message?
-  [key-store sense-id signed-message]
+(defn- get-key-or-throw
+  [key-store sense-id]
   (let [key (db/get-key key-store sense-id)]
     (when-not key
+      (log/error "Key not found for sense-id" sense-id)
       (middleware/throw-invalid-request))
-    (valid-key? signed-message key)))
+    key))
 
 (defn- ack-and-receive
-  [connections message-store timeout receive-message-request]
+  [connections message-store timeout receive-message-request key]
   (db/acknowledge message-store (acked-message-ids receive-message-request))
-  (receive-messages connections message-store timeout (.getSenseId receive-message-request)))
+  (receive-messages connections message-store timeout (.getSenseId receive-message-request) key))
 
 (defn handle-receive
   [connections key-store message-store timeout request]
   (let [sense-id (request-sense-id request)
         signed-message (-> request :body bs/to-byte-array SignedMessage/parse)
         receive-message-request (Messeji$ReceiveMessageRequest/parseFrom
-                                  (.body signed-message))]
+                                  (.body signed-message))
+        key (get-key-or-throw key-store sense-id)]
     (when-not (= sense-id (.getSenseId receive-message-request))
       (middleware/throw-invalid-request))
-    (if (valid-message? key-store sense-id signed-message)
-      (ack-and-receive connections message-store timeout receive-message-request)
+    (if (valid-key? signed-message key)
+      (ack-and-receive connections message-store timeout receive-message-request key)
       {:status 401, :body ""})))
 
 (defn- send-messages
-  [message-store connection-deferred messages]
-  (when (and connection-deferred
-             (not (deferred/realized? connection-deferred)))
+  [message-store {:keys [deferred-response key]} messages]
+  (when (and deferred-response
+             (not (deferred/realized? deferred-response)))
     (when-let [delivery (deferred/success!
-                          connection-deferred
-                          (batch-message-response messages))]
+                          deferred-response
+                          (batch-message-response key messages))]
       ;; If delivery is true, then we haven't previously delivered anything
       ;; and the connection hasn't yet been timed out.
       (mark-sent message-store messages)
@@ -151,7 +171,7 @@
 
 (defn- configure-logging
   [{:keys [property-file-name properties]}]
-  (with-open [reader (clojure.java.io/reader property-file-name)]
+  (with-open [reader (io/reader (io/resource property-file-name))]
     (let [prop (doto (java.util.Properties.)
                   (.load reader)
                   (.put "LOG_LEVEL" (:log-level properties)))]

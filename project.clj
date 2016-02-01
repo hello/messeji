@@ -17,6 +17,7 @@
   :source-paths ["src" "src/main/clojure"]
   :java-source-paths ["src/main/java"]  ; Java source is stored separately.
   :test-paths ["test" "src/test/clojure"]
+  :resource-paths ["resources"]
   :main com.hello.messeji.server
   :aot [com.hello.messeji.server]
   :jvm-opts ["-server"]

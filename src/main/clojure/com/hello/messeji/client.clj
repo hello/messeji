@@ -23,14 +23,13 @@
       (str "http://localhost:" port))))
 
 (defn sign-protobuf
-  "Given a protobuf object and the bytes of an aes key,
-  return a valid signed message."
+  "Given a protobuf object and a key, return a valid signed message."
   [proto-message key]
   (let [body (.toByteArray proto-message)
         key-bytes (Hex/decodeHex (.toCharArray key))
         signed (-> body (SignedMessage/sign key-bytes) .get)
-        iv (->> signed (take 16) byte-array)
-        sig (->> signed (drop 16) (take 32) byte-array)]
+        iv (take 16 signed)
+        sig (->> signed (drop 16) (take 32))]
     (byte-array (concat body iv sig))))
 
 (defn- post
@@ -50,7 +49,8 @@
                   (setSenderId "clj-client")
                   (setOrder order)
                   (setType Messeji$Message$Type/SLEEP_SOUNDS)
-                  build)]
+                  build)
+        response (post url sense-id (.toByteArray message))]
     (-> (post url sense-id (.toByteArray message))
       :body
       Messeji$Message/parseFrom)))
@@ -77,8 +77,11 @@
   (let [url (str host "/receive")
         request-proto (receive-message-request sense-id acked-message-ids)
         signed-proto (sign-protobuf request-proto key)]
-    (-> (post url sense-id signed-proto)
+    (->> (post url sense-id signed-proto)
       :body
+      bs/to-byte-array
+      (drop (+ 16 32)) ;; drop injection vector and sig
+      byte-array
       Messeji$BatchMessage/parseFrom)))
 
 (defn- batch-messages
