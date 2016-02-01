@@ -6,10 +6,11 @@
     [com.hello.messeji.config :as config])
   (:import
     [com.hello.messeji.api
-      Messeji$ReceiveMessageRequest
+      Messeji$BatchMessage
       Messeji$Message
       Messeji$Message$Type
-      Messeji$BatchMessage]
+      Messeji$MessageStatus
+      Messeji$ReceiveMessageRequest]
     [com.hello.messeji SignedMessage]
     [org.apache.commons.codec.binary Hex]))
 
@@ -54,6 +55,15 @@
     (-> response
       :body
       Messeji$Message/parseFrom)))
+
+(defn get-status
+  "Get message status from a message ID."
+  [host message-id]
+  (let [url (str host "/status/" message-id)
+        response @(http/get url {})]
+    (-> response
+      :body
+      Messeji$MessageStatus/parseFrom)))
 
 (defn- receive-message-request
   [sense-id acked-message-ids]

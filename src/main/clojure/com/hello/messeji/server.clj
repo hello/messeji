@@ -140,6 +140,19 @@
     {:status 201
      :body message-with-id}))
 
+(defn- parse-message-id
+  [message-id]
+  (try
+    (Long/parseLong message-id)
+    (catch java.lang.NumberFormatException e
+      (middleware/throw-invalid-request))))
+
+(defn handle-status
+  [message-store message-id]
+  (if-let [message-status (db/get-status message-store (parse-message-id message-id))]
+    {:status 200, :body message-status}
+    {:status 404, :body ""}))
+
 (defn handler
   [connections key-store message-store timeout]
   (let [routes
@@ -149,6 +162,8 @@
             (handle-receive connections key-store message-store timeout request))
           (POST "/send" request
             (handle-send connections message-store request))
+          (GET "/status/:message-id" [message-id]
+            (handle-status message-store message-id))
           (route/not-found ""))]
     (-> routes
        middleware/wrap-log-request
