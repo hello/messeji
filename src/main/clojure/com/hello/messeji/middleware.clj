@@ -63,5 +63,8 @@
 (defn throw-invalid-request
   "Throw an invalid request exception that will be caught by `wrap-invalid-request`
   and rethrown as a 400 error."
-  []
-  (throw (ex-info "Invalid request." {::type ::invalid-request})))
+  ([reason]
+    (log/info "Invalid request: " reason)
+    (throw-invalid-request))
+  ([]
+    (throw (ex-info "Invalid request." {::type ::invalid-request}))))
