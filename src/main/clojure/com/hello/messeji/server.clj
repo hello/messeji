@@ -11,6 +11,7 @@
     [com.hello.messeji.db.in-mem :as mem]
     [com.hello.messeji.db.key-store-ddb :as ksddb]
     [com.hello.messeji.middleware :as middleware]
+    [com.hello.messeji.protobuf :as pb]
     [compojure.core :as compojure :refer [GET POST]]
     [compojure.route :as route]
     [manifold.deferred :as deferred]
@@ -28,21 +29,10 @@
       Messeji$BatchMessage]
     [org.apache.log4j PropertyConfigurator]))
 
-(defn- batch-message
-  ^Messeji$BatchMessage [messages]
-  (let [builder (Messeji$BatchMessage/newBuilder)]
-    (doseq [msg messages]
-      (.addMessage builder msg))
-    (.build builder)))
-
-(defn- sign
-  [^bytes key batch-message]
-  (let [signed-response-opt (SignedMessage/sign (.toByteArray batch-message) key)]))
-
 (defn- batch-message-response
   [^bytes key messages]
-  (let [signed-response-opt (-> messages
-                              batch-message
+  (let [signed-response-opt (-> {:messages messages}
+                              pb/batch-message
                               .toByteArray
                               (SignedMessage/sign key))]
     (if (.isPresent signed-response-opt)
@@ -79,7 +69,7 @@
 (defn- request-sense-id
   [request]
   (let [sense-id (-> request :headers (get "X-Hello-Sense-Id"))]
-    (or sense-id (middleware/throw-invalid-request))))
+    (or sense-id (middleware/throw-invalid-request "No X-Hello-Sense-Id header."))))
 
 (defn- acked-message-ids
   [^Messeji$ReceiveMessageRequest receive-message-request]
@@ -110,11 +100,13 @@
   [connections key-store message-store timeout request]
   (let [sense-id (request-sense-id request)
         signed-message (-> request :body bs/to-byte-array SignedMessage/parse)
-        receive-message-request (Messeji$ReceiveMessageRequest/parseFrom
+        receive-message-request (pb/receive-message-request
                                   (.body signed-message))
         key (get-key-or-throw key-store sense-id)]
     (when-not (= sense-id (.getSenseId receive-message-request))
-      (middleware/throw-invalid-request))
+      (middleware/throw-invalid-request
+        (str "Sense ID in header is " sense-id
+             " but in body is " (.getSenseId receive-message-request))))
     (if (valid-key? signed-message key)
       (ack-and-receive connections message-store timeout receive-message-request key)
       {:status 401, :body ""})))
@@ -134,11 +126,24 @@
 (defn handle-send
   [connections-atom message-store request]
   (let [sense-id (request-sense-id request)
-        message (Messeji$Message/parseFrom (:body request))
+        message (pb/message (:body request))
         message-with-id (db/create-message message-store sense-id message)]
     (send-messages message-store (get @connections-atom sense-id) [message-with-id])
     {:status 201
      :body message-with-id}))
+
+(defn- parse-message-id
+  [message-id]
+  (try
+    (Long/parseLong message-id)
+    (catch java.lang.NumberFormatException e
+      (middleware/throw-invalid-request))))
+
+(defn handle-status
+  [message-store message-id]
+  (if-let [message-status (db/get-status message-store (parse-message-id message-id))]
+    {:status 200, :body message-status}
+    {:status 404, :body ""}))
 
 (defn handler
   [connections key-store message-store timeout]
@@ -149,6 +154,8 @@
             (handle-receive connections key-store message-store timeout request))
           (POST "/send" request
             (handle-send connections message-store request))
+          (GET "/status/:message-id" [message-id]
+            (handle-status message-store message-id))
           (route/not-found ""))]
     (-> routes
        middleware/wrap-log-request
