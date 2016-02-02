@@ -13,7 +13,7 @@
     [com.hello.messeji.db :as db]
     [com.hello.messeji.protobuf :as pb]))
 
-(defn- timestamp
+(defn timestamp
   []
   (System/nanoTime))
 
