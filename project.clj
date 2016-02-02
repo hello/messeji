@@ -20,6 +20,9 @@
   :main com.hello.messeji.server
   :aot [com.hello.messeji.server]
   :jvm-opts ["-server"]
-  :repositories [["private" {:url "s3p://hello-maven/release/"
-                             :username :env/aws_access_key_id
-                             :passphrase :env/aws_secret_key}]])
+  :repositories [["releases" {:url "s3p://hello-maven/release/"
+                              :username :env/aws_access_key_id
+                              :passphrase :env/aws_secret_key}]
+                 ["snapshots" {:url "s3p://hello-maven/snapshot/"
+                               :username :env/aws_access_key_id
+                               :passphrase :env/aws_secret_key}]])
