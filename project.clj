@@ -14,8 +14,7 @@
                                                     com.sun.jmx/jmxri]]
                  [prismatic/schema "1.0.4"]]
   :plugins [[s3-wagon-private "1.2.0"]
-            [lein-pprint "1.1.1"]
-            [theladders/lein-uberjar-deploy "1.0.0"]]
+            [lein-pprint "1.1.1"]]
   :source-paths ["src" "src/main/clojure"]
   :java-source-paths ["src/main/java"]  ; Java source is stored separately.
   :resource-paths ["resources"]
@@ -26,13 +25,14 @@
                   ["change" "version" "leiningen.release/bump-version" "release"]
                   ["vcs" "commit"]
                   ["vcs" "tag" "v" "--no-sign"]
-                  ["uberjar-deploy"]
+                  ["deploy"]
                   ["change" "version" "leiningen.release/bump-version"]
                   ["vcs" "commit"]
                   ["vcs" "push"]]
   :repositories [["releases" {:url "s3p://hello-maven/release/"
                               :username :env/aws_access_key_id
-                              :passphrase :env/aws_secret_key}]
+                              :passphrase :env/aws_secret_key
+                              :sign-releases false}]
                  ["snapshots" {:url "s3p://hello-maven/snapshot/"
                                :username :env/aws_access_key_id
                                :passphrase :env/aws_secret_key}]])
