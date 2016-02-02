@@ -21,6 +21,14 @@
   :main com.hello.messeji.server
   :aot [com.hello.messeji.server]
   :jvm-opts ["-server"]
+  :release-tasks [["vcs" "assert-committed"]
+                  ["change" "version" "leiningen.release/bump-version" "release"]
+                  ["vcs" "commit"]
+                  ["vcs" "tag" "v" "--no-sign"]
+                  ["deploy"]
+                  ["change" "version" "leiningen.release/bump-version"]
+                  ["vcs" "commit"]
+                  ["vcs" "push"]]
   :repositories [["releases" {:url "s3p://hello-maven/release/"
                               :username :env/aws_access_key_id
                               :passphrase :env/aws_secret_key}]
