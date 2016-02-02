@@ -181,7 +181,8 @@
   (with-open [reader (io/reader (io/resource property-file-name))]
     (let [prop (doto (java.util.Properties.)
                   (.load reader)
-                  (.put "LOG_LEVEL" (:log-level properties)))]
+                  (.put "LOG_LEVEL" (:log-level properties))
+                  (.put "FILE" (:file properties)))]
       (PropertyConfigurator/configure prop))))
 
 (defn start-server
