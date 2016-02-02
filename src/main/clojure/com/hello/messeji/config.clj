@@ -11,8 +11,7 @@
    :http {:port s/Int
           :receive-timeout s/Int}
    :logging {:property-file-name s/Str
-             :properties {:log-level s/Str
-                          :file s/Str}}
+             :properties {:log-level s/Str}}
    :max-message-age-millis s/Int})
 
 (defn- deep-merge

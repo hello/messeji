@@ -81,7 +81,16 @@
   (acknowledge
     [_ message-ids]
     (dosync
-      (alter database-ref assoc-in-message-ids :acknowledged? true message-ids))))
+      (alter database-ref assoc-in-message-ids :acknowledged? true message-ids)))
+
+
+  java.io.Closeable
+  (close
+    [this]
+    (dosync
+      (ref-set database-ref {})
+      (ref-set latest-id-ref 0))
+    this))
 
 (defn mk-message-store
   [max-message-age-millis]

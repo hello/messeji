@@ -31,7 +31,13 @@
                               (withTableName table-name)
                               (withKey {"device_id" (attribute-value sense-id)}))
           result (ddb-get-item ddb-client get-item-request)]
-      (some-> result .getItem (.get "aes_key") .getS decode-key))))
+      (some-> result .getItem (.get "aes_key") .getS decode-key)))
+
+  java.io.Closeable
+  (close
+    [this]
+    (.shutdown ddb-client)
+    this))
 
 (defn key-store
   "Create and return a KeyStore."

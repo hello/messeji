@@ -3,6 +3,5 @@
  :http {:port 10000
         :receive-timeout 60000}
  :logging {:property-file-name "log4j.properties"
-           :properties {:log-level "DEBUG"
-                        :file "/var/log/messeji.log"}}
+           :properties {:log-level "DEBUG"}}
  :max-message-age-millis 10000}

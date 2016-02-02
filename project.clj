@@ -20,7 +20,9 @@
   :resource-paths ["resources"]
   :main com.hello.messeji.server
   :aot [com.hello.messeji.server]
-  :jvm-opts ["-server"]
+  :jvm-opts ["-server", "-Dlogfile.path=./log"]
+  :test-selectors {:default (complement :integration)
+                   :integration :integration}
   :release-tasks [["vcs" "assert-committed"]
                   ["change" "version" "leiningen.release/bump-version" "release"]
                   ["vcs" "commit"]

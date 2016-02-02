@@ -166,14 +166,14 @@
        middleware/wrap-500)))
 
 (defrecord Service
-  [connections server ddb-clients]
+  [connections server data-stores]
 
   java.io.Closeable
   (close [this]
     ;; Calls NioEventLoopGroup.shutdownGracefully()
     (.close server)
-    (doseq [[_ client] ddb-clients]
-      (.shutdown client))
+    (doseq [[_ store] data-stores]
+      (.close store))
     (reset! connections nil)))
 
 (defn- configure-logging
@@ -181,8 +181,7 @@
   (with-open [reader (io/reader (io/resource property-file-name))]
     (let [prop (doto (java.util.Properties.)
                   (.load reader)
-                  (.put "LOG_LEVEL" (:log-level properties))
-                  (.put "FILE" (:file properties)))]
+                  (.put "LOG_LEVEL" (:log-level properties)))]
       (PropertyConfigurator/configure prop))))
 
 (defn start-server
@@ -208,7 +207,8 @@
     (->Service
       connections
       server
-      {:key-store ks-ddb-client})))
+      {:key-store key-store
+       :message-store message-store})))
 
 (defn -main
   [config-file & args]
