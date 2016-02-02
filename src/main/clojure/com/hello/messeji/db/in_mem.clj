@@ -70,7 +70,8 @@
     (when-let [state (some-> @database-ref
                        (get message-id)
                        (message-state max-message-age-nanos))]
-      (pb/message-status {:message-id message-id :state state})))
+      (pb/message-status {:message-id message-id
+                          :state (pb/message-status-state state)})))
 
   (mark-sent
     [_ message-ids]

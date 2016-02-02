@@ -8,6 +8,7 @@
     [com.hello.messeji.api Messeji$Message]))
 
 (defmacro at-time
+  "Redef the `timestamp` function to always return t while executing body."
   [t & body]
   `(with-redefs [mem/timestamp (constantly ~t)]
       ~@body))
@@ -88,3 +89,42 @@
       (db/acknowledge message-store [(.getMessageId message-3)])
       (let [messages (at-time (nanos 9500) (doall (db/unacked-messages message-store sense-id)))]
         (is (= (order-set messages) #{100 101}))))))
+
+(deftest test-get-status
+  (let [max-age-millis 10000 ; 10 seconds
+        sense-id "sense1"
+        message-store (mem/mk-message-store max-age-millis)
+        message (pb/message {:sender-id "test"
+                             :order 100
+                             :type (pb/message-type :sleep-sounds)})
+        ;; Insert message at time 0 and get new message ID.
+        insert-msg #(at-time 0
+                      (.getMessageId
+                        (db/create-message message-store sense-id message)))
+        get-status (fn [millis id] (at-time (nanos millis) (db/get-status message-store id)))
+        equal-state? #(= (.getState %1) (pb/message-status-state %2))]
+    (testing "Initial state is pending."
+      (let [message-id (insert-msg)
+            status (get-status 5000 message-id)]
+        (is (equal-state? status :pending))))
+    (testing "Expired"
+      (let [message-id (insert-msg)
+            status (get-status 11000 message-id)]
+        (is (equal-state? status :expired))))
+    (testing "Sent"
+      (let [message-id (insert-msg)]
+        (db/mark-sent message-store [message-id])
+        (testing "Sent takes precedence over pending"
+          (is (equal-state? (get-status 3000 message-id) :sent)))
+        (testing "Sent takes precedence over expired."
+          (is (equal-state? (get-status 12000 message-id) :sent)))))
+    (testing "Received"
+      (let [message-id (insert-msg)]
+        (db/acknowledge message-store [message-id])
+        (testing "Received takes precedence over pending."
+          (is (equal-state? (get-status 3000 message-id) :received)))
+        (testing "Received takes precedence over sent."
+          (db/mark-sent message-store [message-id])
+          (is (equal-state? (get-status 3000 message-id) :received)))
+        (testing "Received takes precedence over all."
+          (is (equal-state? (get-status 13000 message-id) :received)))))))

@@ -34,7 +34,8 @@
       :always (.setOrder order)
       message-id (.setMessageId message-id)
       :always (.setType type)
-      sleep-sounds-command (.setSleepSoundsCommand sleep-sounds-command)
+      sleep-sounds-command (.setSleepSoundsCommand
+                            ^SleepSounds$SleepSoundsCommand sleep-sounds-command)
       :always .build))
 
   (batch-message
