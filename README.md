@@ -92,3 +92,13 @@ To shut down the sense thread, just close it:
 ```
 
 Because it's Closeable, you could also wrap it in `with-open` etc.
+
+
+## Releasing
+Releasing a new JAR is simple. Just run:
+
+```bash
+lein release :patch
+```
+
+Instead of `:patch`, you can also use `:minor` or `:major` to update the version numbers. For more details, see the [Lein Deploy documentation](https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md).
