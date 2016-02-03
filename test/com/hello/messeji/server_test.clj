@@ -105,3 +105,51 @@
     (is (= (.getMessageId message)
            (-> batch-message-deferred deref (.getMessage 0) .getMessageId))
         "Message returned after being sent by while connected.")))
+
+(deftest ^:integration test-receive-only-unacked-messages
+  (let [[sense-id-1 key-1] (first test-sense-id-key-pairs)
+        message-1 (client/send-message (client/localhost) sense-id-1)
+        batch-1 (client/receive-messages (client/localhost) sense-id-1 key-1 [])
+        batch-2 (client/receive-messages (client/localhost) sense-id-1 key-1 [])
+        batch-3-deferred (client/receive-messages-async
+                          (client/localhost) sense-id-1 key-1
+                          [(.getMessageId message-1)])
+        message-2 (client/send-message (client/localhost) sense-id-1)]
+    (is (= #{(.getMessageId message-1)}
+           (->> batch-1 .getMessageList (map #(.getMessageId %)) set)
+           (->> batch-2 .getMessageList (map #(.getMessageId %)) set))
+        "Messages should be returned until they are acked.")
+    (is (= #{(.getMessageId message-2)}
+           (->> batch-3-deferred deref .getMessageList (map #(.getMessageId %)) set))
+        "Only include unacked messages in response.")))
+
+(deftest ^:integration test-get-status
+  (let [[sense-id-1 key-1] (first test-sense-id-key-pairs)
+        message-1 (client/send-message (client/localhost) sense-id-1)
+        message-2 (client/send-message (client/localhost) sense-id-1)
+        message-3 (client/send-message (client/localhost) "nonsense")
+        id-1 (.getMessageId message-1)
+        id-2 (.getMessageId message-2)
+        id-3 (.getMessageId message-3)
+        get-state #(-> (client/get-status (client/localhost) %) .getState)
+        ack #(client/receive-messages (client/localhost) sense-id-1 key-1 %)]
+    (is (= (pb/message-status-state :pending)
+           (get-state id-1)
+           (get-state id-2)
+           (get-state id-3))
+        "All messages are initially pending.")
+    (testing "sent"
+      (ack [])
+      (is (= (pb/message-status-state :sent)
+             (get-state id-1)
+             (get-state id-2))
+          "Sent messages are correctly marked as sent.")
+      (is (= (pb/message-status-state :pending)
+             (get-state id-3))
+          "Unsent message is still pending."))
+    (testing "received"
+      (ack [id-2])
+      (are [id state] (= (pb/message-status-state state) (get-state id))
+        id-1 :sent
+        id-2 :received
+        id-3 :pending))))
