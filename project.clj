@@ -22,7 +22,8 @@
   :aot [com.hello.messeji.server]
   :jvm-opts ["-server", "-Dlogfile.path=./log"]
   :test-selectors {:default (complement :integration)
-                   :integration :integration}
+                   :integration :integration
+                   :all (constantly true)}
   :release-tasks [["vcs" "assert-committed"]
                   ["change" "version" "leiningen.release/bump-version" "release"]
                   ["vcs" "commit"]
