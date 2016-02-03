@@ -8,6 +8,9 @@
       ResourceNotFoundException]
     [org.apache.commons.codec.binary Hex]))
 
+(def ^:private default-aes-key
+  (.getBytes "1234567891234567"))
+
 (defn- attribute-value
   [s]
   (.withS (AttributeValue.) s))

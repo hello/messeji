@@ -173,7 +173,7 @@
        middleware/wrap-500)))
 
 (defrecord Service
-  [connections server data-stores]
+  [config connections server data-stores]
 
   java.io.Closeable
   (close [this]
@@ -212,6 +212,7 @@
                  (handler connections key-store message-store timeout)
                  {:port (get-in config-map [:http :port])})]
     (->Service
+      config-map
       connections
       server
       {:key-store key-store

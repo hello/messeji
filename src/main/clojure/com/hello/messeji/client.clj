@@ -4,7 +4,8 @@
     [byte-streams :as bs]
     [clojure.edn :as edn]
     [com.hello.messeji.config :as config]
-    [com.hello.messeji.protobuf :as pb])
+    [com.hello.messeji.protobuf :as pb]
+    [manifold.deferred :as deferred])
   (:import
     [com.hello.messeji.api Messeji$Message]
     [com.hello.messeji SignedMessage]
@@ -63,18 +64,21 @@
       pb/message-status)))
 
 (defn- receive
-  [post-fn host sense-id key acked-message-ids]
+  [host sense-id key acked-message-ids]
   (let [url (str host "/receive")
         request-proto (pb/receive-message-request
                         {:sense-id sense-id
                          :message-read-ids acked-message-ids})
         signed-proto (sign-protobuf request-proto key)]
-    (->> (post-fn url sense-id signed-proto)
-      :body
-      bs/to-byte-array
-      (drop (+ 16 32)) ;; drop injection vector and sig
-      byte-array
-      pb/batch-message)))
+    (deferred/chain
+      (post-async url sense-id signed-proto)
+      (fn [response]
+        (->> response
+          :body
+          bs/to-byte-array
+          (drop (+ 16 32)) ;; drop injection vector and sig
+          byte-array
+          pb/batch-message)))))
 
 (defn receive-messages
   "Blocks waiting for new messages from server.
@@ -87,23 +91,12 @@
 
   Returns BatchMessage."
   [host sense-id key acked-message-ids]
-  (receive post host sense-id key acked-message-ids)
-  #_(let [url (str host "/receive")
-        request-proto (pb/receive-message-request
-                        {:sense-id sense-id
-                         :message-read-ids acked-message-ids})
-        signed-proto (sign-protobuf request-proto key)]
-    (->> (post url sense-id signed-proto)
-      :body
-      bs/to-byte-array
-      (drop (+ 16 32)) ;; drop injection vector and sig
-      byte-array
-      pb/batch-message)))
+  @(receive host sense-id key acked-message-ids))
 
 (defn receive-messages-async
   "Same as receive-messages, but returns a manifold deferred."
   [host sense-id key acked-message-ids]
-  (receive post-async host sense-id key acked-message-ids))
+  (receive host sense-id key acked-message-ids))
 
 (defn- batch-messages
   [batch-message]
