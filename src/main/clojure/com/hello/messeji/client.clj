@@ -29,12 +29,15 @@
         sig (->> signed (drop 16) (take 32))]
     (byte-array (concat body iv sig))))
 
-(defn- post
+(defn- post-async
   [url sense-id body]
-  @(http/post
+  (http/post
     url
     {:body body
      :headers {"X-Hello-Sense-Id" sense-id}}))
+
+(def ^:private post
+  (comp deref post-async))
 
 (defn send-message
   "Send a message to the given sense-id,
@@ -59,6 +62,20 @@
       :body
       pb/message-status)))
 
+(defn- receive
+  [post-fn host sense-id key acked-message-ids]
+  (let [url (str host "/receive")
+        request-proto (pb/receive-message-request
+                        {:sense-id sense-id
+                         :message-read-ids acked-message-ids})
+        signed-proto (sign-protobuf request-proto key)]
+    (->> (post-fn url sense-id signed-proto)
+      :body
+      bs/to-byte-array
+      (drop (+ 16 32)) ;; drop injection vector and sig
+      byte-array
+      pb/batch-message)))
+
 (defn receive-messages
   "Blocks waiting for new messages from server.
 
@@ -70,7 +87,8 @@
 
   Returns BatchMessage."
   [host sense-id key acked-message-ids]
-  (let [url (str host "/receive")
+  (receive post host sense-id key acked-message-ids)
+  #_(let [url (str host "/receive")
         request-proto (pb/receive-message-request
                         {:sense-id sense-id
                          :message-read-ids acked-message-ids})
@@ -81,6 +99,11 @@
       (drop (+ 16 32)) ;; drop injection vector and sig
       byte-array
       pb/batch-message)))
+
+(defn receive-messages-async
+  "Same as receive-messages, but returns a manifold deferred."
+  [host sense-id key acked-message-ids]
+  (receive post-async host sense-id key acked-message-ids))
 
 (defn- batch-messages
   [batch-message]
