@@ -32,6 +32,7 @@
                   ["change" "version" "leiningen.release/bump-version"]
                   ["vcs" "commit"]
                   ["vcs" "push"]]
+  :deploy-branches ["master"]
   :repositories [["releases" {:url "s3p://hello-maven/release/"
                               :username :env/aws_access_key_id
                               :passphrase :env/aws_secret_key
