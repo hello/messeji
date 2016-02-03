@@ -85,3 +85,23 @@
                 timeout
                 ::timed-out)]
       (is (= @resp ::timed-out)))))
+
+(deftest ^:integration test-receive-multiple-messages
+  (let [[sense-id-1 key-1] (first test-sense-id-key-pairs)
+        message-1 (client/send-message (client/localhost) sense-id-1)
+        message-2 (client/send-message (client/localhost) sense-id-1)
+        message-3 (client/send-message (client/localhost) (key (second test-sense-id-key-pairs)))
+        batch-message (client/receive-messages (client/localhost) sense-id-1 key-1 [])]
+    (is (= #{(.getMessageId message-1) (.getMessageId message-2)}
+           (->> batch-message .getMessageList (map #(.getMessageId %)) set))
+        "Both messages for this sense-id should be retrieved, but not the other message.")))
+
+(deftest ^:integration test-receive-new-messages-while-connected
+  (let [[sense-id-1 key-1] (first test-sense-id-key-pairs)
+        batch-message-deferred (client/receive-messages-async
+                                (client/localhost) sense-id-1 key-1 [])
+        _ (Thread/sleep 1000)
+        message (client/send-message (client/localhost) sense-id-1)]
+    (is (= (.getMessageId message)
+           (-> batch-message-deferred deref (.getMessage 0) .getMessageId))
+        "Message returned after being sent by while connected.")))
