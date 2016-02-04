@@ -11,7 +11,9 @@
   }"
   (:require
     [com.hello.messeji.db :as db]
-    [com.hello.messeji.protobuf :as pb]))
+    [com.hello.messeji.protobuf :as pb])
+  (:import
+    [com.hello.messeji.api Messeji$Message]))
 
 (defn timestamp
   []
@@ -63,7 +65,10 @@
       (filter #(and (= (:sense-id %) sense-id)
                     (not (expired? max-message-age-nanos (:timestamp %)))
                     (not (:acknowledged? %))))
-      (map :message)))
+      (map :message)
+      ;; Sort by order first, then ID
+      (sort-by (juxt #(.getOrder ^Messeji$Message %)
+                     #(.getMessageId ^Messeji$Message %)))))
 
   (get-status
     [_ message-id]

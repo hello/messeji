@@ -10,6 +10,7 @@
     [manifold.deferred :as deferred])
   (:import
     [com.hello.messeji.api
+      Messeji$Message
       Messeji$ReceiveMessageRequest]
     [org.apache.commons.codec.binary Hex]))
 
@@ -105,6 +106,24 @@
     (is (= (.getMessageId message)
            (-> batch-message-deferred deref (.getMessage 0) .getMessageId))
         "Message returned after being sent by while connected.")))
+
+(deftest ^:integration test-receive-messages-in-order
+  (let [[sense-id-1 key-1] (first test-sense-id-key-pairs)
+        send (fn [message-map]
+                @(http/post
+                  (str (client/localhost) "/send")
+                  {:body (-> message-map (assoc :type (pb/message-type :sleep-sounds))
+                              pb/message .toByteArray)
+                   :headers {"X-Hello-Sense-Id" sense-id-1}}))
+        send-msg (comp pb/message :body send)
+        msg-2a (send-msg {:sender-id "a", :order 2})
+        msg-1a (send-msg {:sender-id "a", :order 1})
+        msg-1b (send-msg {:sender-id "b", :order 1})
+        msg-2b (send-msg {:sender-id "b", :order 2})
+        batch-message (client/receive-messages (client/localhost) sense-id-1 key-1 [])]
+    (is (= (map #(.getMessageId %) [msg-1a msg-1b msg-2a msg-2b])
+           (map #(.getMessageId %) (.getMessageList batch-message)))
+        "Relative ordering for each message is preserved first by :order, then id.")))
 
 (deftest ^:integration test-receive-only-unacked-messages
   (let [[sense-id-1 key-1] (first test-sense-id-key-pairs)
