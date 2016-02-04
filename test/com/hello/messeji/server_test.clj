@@ -153,3 +153,11 @@
         id-1 :sent
         id-2 :received
         id-3 :pending))))
+
+(deftest ^:integration test-get-status-invalid-id
+  (testing "id is invalid"
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"400"
+          (client/get-status (client/localhost) "not-valid"))))
+  (testing "id is valid but not found"
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"404"
+          (client/get-status (client/localhost) 1337)))))
