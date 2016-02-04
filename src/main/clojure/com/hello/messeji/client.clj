@@ -43,16 +43,40 @@
 (defn send-message
   "Send a message to the given sense-id,
   returning a Message object from the server."
-  [host sense-id]
-  (let [url (str host "/send")
-        order (System/nanoTime)
-        message (pb/message {:sender-id "clj-client"
-                             :order order
-                             :type (pb/message-type :stop-audio)})
-        response (post url sense-id (.toByteArray message))]
-    (-> response
-      :body
-      pb/message)))
+  ([host sense-id message-map]
+    (let [message-map (cond-> message-map
+                        (not (:sender-id message-map)) (assoc :sender-id "clj-client")
+                        (not (:order message-map)) (assoc :order (System/nanoTime)))
+          url (str host "/send")
+          message (pb/message message-map)
+          response (post url sense-id (.toByteArray message))]
+      (-> response
+        :body
+        pb/message)))
+  ([host sense-id]
+    (send-message
+      host
+      sense-id
+      {:type (pb/message-type :stop-audio)
+       :stop-audio (pb/stop-audio {:fade-out-duration-seconds 0})})))
+
+(defn send-play-audio
+  "Send a command to play audio."
+  [host sense-id play-audio-map]
+  (send-message
+    host
+    sense-id
+    {:type (pb/message-type :play-audio)
+     :play-audio (pb/play-audio play-audio-map)}))
+
+(defn send-stop-audio
+  "Send a command to stop audio."
+  [host sense-id stop-audio-map]
+  (send-message
+    host
+    sense-id
+    {:type (pb/message-type :stop-audio)
+     :stop-audio (pb/stop-audio stop-audio-map)}))
 
 (defn get-status
   "Get message status from a message ID."

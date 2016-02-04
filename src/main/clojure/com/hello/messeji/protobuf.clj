@@ -73,7 +73,7 @@
         (setFadeOutDurationSeconds fade-out-duration-seconds)
         (setFadeInDurationSeconds fade-in-duration-seconds))
       (when duration-seconds
-        (.setDurationSeconds duration-seconds))
+        (.setDurationSeconds builder duration-seconds))
       (.build builder)))
 
   (stop-audio
