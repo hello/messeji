@@ -3,13 +3,19 @@
 ## Send messages
 ### Request
 **Route**: `/send`
+
 **Method**: `POST`
+
 **Headers**: `"X-Hello-Sense-Id": <sense_id>`
+
 **Body**: `Messeji.Message`
+
 
 ### Response
 **Status**: `200 OK`
+
 **Body**: `Messeji.Message` object. Same as the request, but with a `messageId`.
+
 
 ### Description
 Send the message to the specified Sense. This is asynchronous, so the response from this endpoint
@@ -21,11 +27,15 @@ when querying the `/status` endpoint.
 ## Get message status
 ### Request
 **Route**: `/status/<messageId>`
+
 **Method**: `GET`
+
 
 ### Response
 **Status**: `200 OK`
+
 **Body**: `Messeji.MessageStatus`
+
 
 ### Description
 Get the current status for the given `messageId`. See the [documentation](https://github.com/hello/proto/tree/master/messeji)
@@ -35,13 +45,19 @@ to understand the different states of the message status.
 ## Receive messages
 ### Request
 **Route**: `/receive`
+
 **Medhod**: `POST`
+
 **Headers**: `"X-Hello-Sense-Id": <sense_id>`
+
 **Body**: `Messeji.ReceiveMessageRequest` (signed using encryption key)
+
 
 ### Response
 **Status**: `200 OK`
+
 **Body**: `Messeji.BatchMessage` (signed using encryption key)
+
 
 ### Description
 Receive all unexpired, unacknowledged messages for this Sense ascending (earliest first) order. Relative ordering of messages for each senderId is preserved, but not necessarily absolute ordering between different senders.
