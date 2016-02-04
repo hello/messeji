@@ -734,17 +734,30 @@ public final class Messeji {
     com.hello.messeji.api.Messeji.Message.Type getType();
 
     /**
-     * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+     * <code>optional .PlayAudio play_audio = 5;</code>
      */
-    boolean hasSleepSoundsCommand();
+    boolean hasPlayAudio();
     /**
-     * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+     * <code>optional .PlayAudio play_audio = 5;</code>
      */
-    com.hello.messeji.api.SleepSounds.SleepSoundsCommand getSleepSoundsCommand();
+    com.hello.messeji.api.AudioCommands.PlayAudio getPlayAudio();
     /**
-     * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+     * <code>optional .PlayAudio play_audio = 5;</code>
      */
-    com.hello.messeji.api.SleepSounds.SleepSoundsCommandOrBuilder getSleepSoundsCommandOrBuilder();
+    com.hello.messeji.api.AudioCommands.PlayAudioOrBuilder getPlayAudioOrBuilder();
+
+    /**
+     * <code>optional .StopAudio stop_audio = 6;</code>
+     */
+    boolean hasStopAudio();
+    /**
+     * <code>optional .StopAudio stop_audio = 6;</code>
+     */
+    com.hello.messeji.api.AudioCommands.StopAudio getStopAudio();
+    /**
+     * <code>optional .StopAudio stop_audio = 6;</code>
+     */
+    com.hello.messeji.api.AudioCommands.StopAudioOrBuilder getStopAudioOrBuilder();
   }
   /**
    * Protobuf type {@code Message}
@@ -826,16 +839,29 @@ public final class Messeji {
               break;
             }
             case 42: {
-              com.hello.messeji.api.SleepSounds.SleepSoundsCommand.Builder subBuilder = null;
+              com.hello.messeji.api.AudioCommands.PlayAudio.Builder subBuilder = null;
               if (((bitField0_ & 0x00000010) == 0x00000010)) {
-                subBuilder = sleepSoundsCommand_.toBuilder();
+                subBuilder = playAudio_.toBuilder();
               }
-              sleepSoundsCommand_ = input.readMessage(com.hello.messeji.api.SleepSounds.SleepSoundsCommand.PARSER, extensionRegistry);
+              playAudio_ = input.readMessage(com.hello.messeji.api.AudioCommands.PlayAudio.PARSER, extensionRegistry);
               if (subBuilder != null) {
-                subBuilder.mergeFrom(sleepSoundsCommand_);
-                sleepSoundsCommand_ = subBuilder.buildPartial();
+                subBuilder.mergeFrom(playAudio_);
+                playAudio_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x00000010;
+              break;
+            }
+            case 50: {
+              com.hello.messeji.api.AudioCommands.StopAudio.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000020) == 0x00000020)) {
+                subBuilder = stopAudio_.toBuilder();
+              }
+              stopAudio_ = input.readMessage(com.hello.messeji.api.AudioCommands.StopAudio.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(stopAudio_);
+                stopAudio_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000020;
               break;
             }
           }
@@ -883,22 +909,31 @@ public final class Messeji {
     public enum Type
         implements com.google.protobuf.ProtocolMessageEnum {
       /**
-       * <code>SLEEP_SOUNDS = 0;</code>
+       * <code>PLAY_AUDIO = 0;</code>
        */
-      SLEEP_SOUNDS(0, 0),
+      PLAY_AUDIO(0, 0),
+      /**
+       * <code>STOP_AUDIO = 1;</code>
+       */
+      STOP_AUDIO(1, 1),
       ;
 
       /**
-       * <code>SLEEP_SOUNDS = 0;</code>
+       * <code>PLAY_AUDIO = 0;</code>
        */
-      public static final int SLEEP_SOUNDS_VALUE = 0;
+      public static final int PLAY_AUDIO_VALUE = 0;
+      /**
+       * <code>STOP_AUDIO = 1;</code>
+       */
+      public static final int STOP_AUDIO_VALUE = 1;
 
 
       public final int getNumber() { return value; }
 
       public static Type valueOf(int value) {
         switch (value) {
-          case 0: return SLEEP_SOUNDS;
+          case 0: return PLAY_AUDIO;
+          case 1: return STOP_AUDIO;
           default: return null;
         }
       }
@@ -1079,33 +1114,55 @@ public final class Messeji {
       return type_;
     }
 
-    public static final int SLEEP_SOUNDS_COMMAND_FIELD_NUMBER = 5;
-    private com.hello.messeji.api.SleepSounds.SleepSoundsCommand sleepSoundsCommand_;
+    public static final int PLAY_AUDIO_FIELD_NUMBER = 5;
+    private com.hello.messeji.api.AudioCommands.PlayAudio playAudio_;
     /**
-     * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+     * <code>optional .PlayAudio play_audio = 5;</code>
      */
-    public boolean hasSleepSoundsCommand() {
+    public boolean hasPlayAudio() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
-     * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+     * <code>optional .PlayAudio play_audio = 5;</code>
      */
-    public com.hello.messeji.api.SleepSounds.SleepSoundsCommand getSleepSoundsCommand() {
-      return sleepSoundsCommand_;
+    public com.hello.messeji.api.AudioCommands.PlayAudio getPlayAudio() {
+      return playAudio_;
     }
     /**
-     * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+     * <code>optional .PlayAudio play_audio = 5;</code>
      */
-    public com.hello.messeji.api.SleepSounds.SleepSoundsCommandOrBuilder getSleepSoundsCommandOrBuilder() {
-      return sleepSoundsCommand_;
+    public com.hello.messeji.api.AudioCommands.PlayAudioOrBuilder getPlayAudioOrBuilder() {
+      return playAudio_;
+    }
+
+    public static final int STOP_AUDIO_FIELD_NUMBER = 6;
+    private com.hello.messeji.api.AudioCommands.StopAudio stopAudio_;
+    /**
+     * <code>optional .StopAudio stop_audio = 6;</code>
+     */
+    public boolean hasStopAudio() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>optional .StopAudio stop_audio = 6;</code>
+     */
+    public com.hello.messeji.api.AudioCommands.StopAudio getStopAudio() {
+      return stopAudio_;
+    }
+    /**
+     * <code>optional .StopAudio stop_audio = 6;</code>
+     */
+    public com.hello.messeji.api.AudioCommands.StopAudioOrBuilder getStopAudioOrBuilder() {
+      return stopAudio_;
     }
 
     private void initFields() {
       senderId_ = "";
       order_ = 0L;
       messageId_ = 0L;
-      type_ = com.hello.messeji.api.Messeji.Message.Type.SLEEP_SOUNDS;
-      sleepSoundsCommand_ = com.hello.messeji.api.SleepSounds.SleepSoundsCommand.getDefaultInstance();
+      type_ = com.hello.messeji.api.Messeji.Message.Type.PLAY_AUDIO;
+      playAudio_ = com.hello.messeji.api.AudioCommands.PlayAudio.getDefaultInstance();
+      stopAudio_ = com.hello.messeji.api.AudioCommands.StopAudio.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -1120,6 +1177,18 @@ public final class Messeji {
       if (!hasType()) {
         memoizedIsInitialized = 0;
         return false;
+      }
+      if (hasPlayAudio()) {
+        if (!getPlayAudio().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
+      if (hasStopAudio()) {
+        if (!getStopAudio().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
       }
       memoizedIsInitialized = 1;
       return true;
@@ -1141,7 +1210,10 @@ public final class Messeji {
         output.writeEnum(4, type_.getNumber());
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        output.writeMessage(5, sleepSoundsCommand_);
+        output.writeMessage(5, playAudio_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        output.writeMessage(6, stopAudio_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1170,7 +1242,11 @@ public final class Messeji {
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(5, sleepSoundsCommand_);
+          .computeMessageSize(5, playAudio_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, stopAudio_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1281,7 +1357,8 @@ public final class Messeji {
       }
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-          getSleepSoundsCommandFieldBuilder();
+          getPlayAudioFieldBuilder();
+          getStopAudioFieldBuilder();
         }
       }
       private static Builder create() {
@@ -1296,14 +1373,20 @@ public final class Messeji {
         bitField0_ = (bitField0_ & ~0x00000002);
         messageId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000004);
-        type_ = com.hello.messeji.api.Messeji.Message.Type.SLEEP_SOUNDS;
+        type_ = com.hello.messeji.api.Messeji.Message.Type.PLAY_AUDIO;
         bitField0_ = (bitField0_ & ~0x00000008);
-        if (sleepSoundsCommandBuilder_ == null) {
-          sleepSoundsCommand_ = com.hello.messeji.api.SleepSounds.SleepSoundsCommand.getDefaultInstance();
+        if (playAudioBuilder_ == null) {
+          playAudio_ = com.hello.messeji.api.AudioCommands.PlayAudio.getDefaultInstance();
         } else {
-          sleepSoundsCommandBuilder_.clear();
+          playAudioBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000010);
+        if (stopAudioBuilder_ == null) {
+          stopAudio_ = com.hello.messeji.api.AudioCommands.StopAudio.getDefaultInstance();
+        } else {
+          stopAudioBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000020);
         return this;
       }
 
@@ -1351,10 +1434,18 @@ public final class Messeji {
         if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
           to_bitField0_ |= 0x00000010;
         }
-        if (sleepSoundsCommandBuilder_ == null) {
-          result.sleepSoundsCommand_ = sleepSoundsCommand_;
+        if (playAudioBuilder_ == null) {
+          result.playAudio_ = playAudio_;
         } else {
-          result.sleepSoundsCommand_ = sleepSoundsCommandBuilder_.build();
+          result.playAudio_ = playAudioBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+          to_bitField0_ |= 0x00000020;
+        }
+        if (stopAudioBuilder_ == null) {
+          result.stopAudio_ = stopAudio_;
+        } else {
+          result.stopAudio_ = stopAudioBuilder_.build();
         }
         result.bitField0_ = to_bitField0_;
         onBuilt();
@@ -1386,8 +1477,11 @@ public final class Messeji {
         if (other.hasType()) {
           setType(other.getType());
         }
-        if (other.hasSleepSoundsCommand()) {
-          mergeSleepSoundsCommand(other.getSleepSoundsCommand());
+        if (other.hasPlayAudio()) {
+          mergePlayAudio(other.getPlayAudio());
+        }
+        if (other.hasStopAudio()) {
+          mergeStopAudio(other.getStopAudio());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -1401,6 +1495,18 @@ public final class Messeji {
         if (!hasType()) {
           
           return false;
+        }
+        if (hasPlayAudio()) {
+          if (!getPlayAudio().isInitialized()) {
+            
+            return false;
+          }
+        }
+        if (hasStopAudio()) {
+          if (!getStopAudio().isInitialized()) {
+            
+            return false;
+          }
         }
         return true;
       }
@@ -1630,7 +1736,7 @@ public final class Messeji {
         return this;
       }
 
-      private com.hello.messeji.api.Messeji.Message.Type type_ = com.hello.messeji.api.Messeji.Message.Type.SLEEP_SOUNDS;
+      private com.hello.messeji.api.Messeji.Message.Type type_ = com.hello.messeji.api.Messeji.Message.Type.PLAY_AUDIO;
       /**
        * <code>required .Message.Type type = 4;</code>
        *
@@ -1676,125 +1782,241 @@ public final class Messeji {
        */
       public Builder clearType() {
         bitField0_ = (bitField0_ & ~0x00000008);
-        type_ = com.hello.messeji.api.Messeji.Message.Type.SLEEP_SOUNDS;
+        type_ = com.hello.messeji.api.Messeji.Message.Type.PLAY_AUDIO;
         onChanged();
         return this;
       }
 
-      private com.hello.messeji.api.SleepSounds.SleepSoundsCommand sleepSoundsCommand_ = com.hello.messeji.api.SleepSounds.SleepSoundsCommand.getDefaultInstance();
+      private com.hello.messeji.api.AudioCommands.PlayAudio playAudio_ = com.hello.messeji.api.AudioCommands.PlayAudio.getDefaultInstance();
       private com.google.protobuf.SingleFieldBuilder<
-          com.hello.messeji.api.SleepSounds.SleepSoundsCommand, com.hello.messeji.api.SleepSounds.SleepSoundsCommand.Builder, com.hello.messeji.api.SleepSounds.SleepSoundsCommandOrBuilder> sleepSoundsCommandBuilder_;
+          com.hello.messeji.api.AudioCommands.PlayAudio, com.hello.messeji.api.AudioCommands.PlayAudio.Builder, com.hello.messeji.api.AudioCommands.PlayAudioOrBuilder> playAudioBuilder_;
       /**
-       * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+       * <code>optional .PlayAudio play_audio = 5;</code>
        */
-      public boolean hasSleepSoundsCommand() {
+      public boolean hasPlayAudio() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
-       * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+       * <code>optional .PlayAudio play_audio = 5;</code>
        */
-      public com.hello.messeji.api.SleepSounds.SleepSoundsCommand getSleepSoundsCommand() {
-        if (sleepSoundsCommandBuilder_ == null) {
-          return sleepSoundsCommand_;
+      public com.hello.messeji.api.AudioCommands.PlayAudio getPlayAudio() {
+        if (playAudioBuilder_ == null) {
+          return playAudio_;
         } else {
-          return sleepSoundsCommandBuilder_.getMessage();
+          return playAudioBuilder_.getMessage();
         }
       }
       /**
-       * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+       * <code>optional .PlayAudio play_audio = 5;</code>
        */
-      public Builder setSleepSoundsCommand(com.hello.messeji.api.SleepSounds.SleepSoundsCommand value) {
-        if (sleepSoundsCommandBuilder_ == null) {
+      public Builder setPlayAudio(com.hello.messeji.api.AudioCommands.PlayAudio value) {
+        if (playAudioBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          sleepSoundsCommand_ = value;
+          playAudio_ = value;
           onChanged();
         } else {
-          sleepSoundsCommandBuilder_.setMessage(value);
+          playAudioBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00000010;
         return this;
       }
       /**
-       * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+       * <code>optional .PlayAudio play_audio = 5;</code>
        */
-      public Builder setSleepSoundsCommand(
-          com.hello.messeji.api.SleepSounds.SleepSoundsCommand.Builder builderForValue) {
-        if (sleepSoundsCommandBuilder_ == null) {
-          sleepSoundsCommand_ = builderForValue.build();
+      public Builder setPlayAudio(
+          com.hello.messeji.api.AudioCommands.PlayAudio.Builder builderForValue) {
+        if (playAudioBuilder_ == null) {
+          playAudio_ = builderForValue.build();
           onChanged();
         } else {
-          sleepSoundsCommandBuilder_.setMessage(builderForValue.build());
+          playAudioBuilder_.setMessage(builderForValue.build());
         }
         bitField0_ |= 0x00000010;
         return this;
       }
       /**
-       * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+       * <code>optional .PlayAudio play_audio = 5;</code>
        */
-      public Builder mergeSleepSoundsCommand(com.hello.messeji.api.SleepSounds.SleepSoundsCommand value) {
-        if (sleepSoundsCommandBuilder_ == null) {
+      public Builder mergePlayAudio(com.hello.messeji.api.AudioCommands.PlayAudio value) {
+        if (playAudioBuilder_ == null) {
           if (((bitField0_ & 0x00000010) == 0x00000010) &&
-              sleepSoundsCommand_ != com.hello.messeji.api.SleepSounds.SleepSoundsCommand.getDefaultInstance()) {
-            sleepSoundsCommand_ =
-              com.hello.messeji.api.SleepSounds.SleepSoundsCommand.newBuilder(sleepSoundsCommand_).mergeFrom(value).buildPartial();
+              playAudio_ != com.hello.messeji.api.AudioCommands.PlayAudio.getDefaultInstance()) {
+            playAudio_ =
+              com.hello.messeji.api.AudioCommands.PlayAudio.newBuilder(playAudio_).mergeFrom(value).buildPartial();
           } else {
-            sleepSoundsCommand_ = value;
+            playAudio_ = value;
           }
           onChanged();
         } else {
-          sleepSoundsCommandBuilder_.mergeFrom(value);
+          playAudioBuilder_.mergeFrom(value);
         }
         bitField0_ |= 0x00000010;
         return this;
       }
       /**
-       * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+       * <code>optional .PlayAudio play_audio = 5;</code>
        */
-      public Builder clearSleepSoundsCommand() {
-        if (sleepSoundsCommandBuilder_ == null) {
-          sleepSoundsCommand_ = com.hello.messeji.api.SleepSounds.SleepSoundsCommand.getDefaultInstance();
+      public Builder clearPlayAudio() {
+        if (playAudioBuilder_ == null) {
+          playAudio_ = com.hello.messeji.api.AudioCommands.PlayAudio.getDefaultInstance();
           onChanged();
         } else {
-          sleepSoundsCommandBuilder_.clear();
+          playAudioBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
       /**
-       * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+       * <code>optional .PlayAudio play_audio = 5;</code>
        */
-      public com.hello.messeji.api.SleepSounds.SleepSoundsCommand.Builder getSleepSoundsCommandBuilder() {
+      public com.hello.messeji.api.AudioCommands.PlayAudio.Builder getPlayAudioBuilder() {
         bitField0_ |= 0x00000010;
         onChanged();
-        return getSleepSoundsCommandFieldBuilder().getBuilder();
+        return getPlayAudioFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+       * <code>optional .PlayAudio play_audio = 5;</code>
        */
-      public com.hello.messeji.api.SleepSounds.SleepSoundsCommandOrBuilder getSleepSoundsCommandOrBuilder() {
-        if (sleepSoundsCommandBuilder_ != null) {
-          return sleepSoundsCommandBuilder_.getMessageOrBuilder();
+      public com.hello.messeji.api.AudioCommands.PlayAudioOrBuilder getPlayAudioOrBuilder() {
+        if (playAudioBuilder_ != null) {
+          return playAudioBuilder_.getMessageOrBuilder();
         } else {
-          return sleepSoundsCommand_;
+          return playAudio_;
         }
       }
       /**
-       * <code>optional .SleepSoundsCommand sleep_sounds_command = 5;</code>
+       * <code>optional .PlayAudio play_audio = 5;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          com.hello.messeji.api.SleepSounds.SleepSoundsCommand, com.hello.messeji.api.SleepSounds.SleepSoundsCommand.Builder, com.hello.messeji.api.SleepSounds.SleepSoundsCommandOrBuilder> 
-          getSleepSoundsCommandFieldBuilder() {
-        if (sleepSoundsCommandBuilder_ == null) {
-          sleepSoundsCommandBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              com.hello.messeji.api.SleepSounds.SleepSoundsCommand, com.hello.messeji.api.SleepSounds.SleepSoundsCommand.Builder, com.hello.messeji.api.SleepSounds.SleepSoundsCommandOrBuilder>(
-                  getSleepSoundsCommand(),
+          com.hello.messeji.api.AudioCommands.PlayAudio, com.hello.messeji.api.AudioCommands.PlayAudio.Builder, com.hello.messeji.api.AudioCommands.PlayAudioOrBuilder> 
+          getPlayAudioFieldBuilder() {
+        if (playAudioBuilder_ == null) {
+          playAudioBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              com.hello.messeji.api.AudioCommands.PlayAudio, com.hello.messeji.api.AudioCommands.PlayAudio.Builder, com.hello.messeji.api.AudioCommands.PlayAudioOrBuilder>(
+                  getPlayAudio(),
                   getParentForChildren(),
                   isClean());
-          sleepSoundsCommand_ = null;
+          playAudio_ = null;
         }
-        return sleepSoundsCommandBuilder_;
+        return playAudioBuilder_;
+      }
+
+      private com.hello.messeji.api.AudioCommands.StopAudio stopAudio_ = com.hello.messeji.api.AudioCommands.StopAudio.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          com.hello.messeji.api.AudioCommands.StopAudio, com.hello.messeji.api.AudioCommands.StopAudio.Builder, com.hello.messeji.api.AudioCommands.StopAudioOrBuilder> stopAudioBuilder_;
+      /**
+       * <code>optional .StopAudio stop_audio = 6;</code>
+       */
+      public boolean hasStopAudio() {
+        return ((bitField0_ & 0x00000020) == 0x00000020);
+      }
+      /**
+       * <code>optional .StopAudio stop_audio = 6;</code>
+       */
+      public com.hello.messeji.api.AudioCommands.StopAudio getStopAudio() {
+        if (stopAudioBuilder_ == null) {
+          return stopAudio_;
+        } else {
+          return stopAudioBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .StopAudio stop_audio = 6;</code>
+       */
+      public Builder setStopAudio(com.hello.messeji.api.AudioCommands.StopAudio value) {
+        if (stopAudioBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          stopAudio_ = value;
+          onChanged();
+        } else {
+          stopAudioBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      /**
+       * <code>optional .StopAudio stop_audio = 6;</code>
+       */
+      public Builder setStopAudio(
+          com.hello.messeji.api.AudioCommands.StopAudio.Builder builderForValue) {
+        if (stopAudioBuilder_ == null) {
+          stopAudio_ = builderForValue.build();
+          onChanged();
+        } else {
+          stopAudioBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      /**
+       * <code>optional .StopAudio stop_audio = 6;</code>
+       */
+      public Builder mergeStopAudio(com.hello.messeji.api.AudioCommands.StopAudio value) {
+        if (stopAudioBuilder_ == null) {
+          if (((bitField0_ & 0x00000020) == 0x00000020) &&
+              stopAudio_ != com.hello.messeji.api.AudioCommands.StopAudio.getDefaultInstance()) {
+            stopAudio_ =
+              com.hello.messeji.api.AudioCommands.StopAudio.newBuilder(stopAudio_).mergeFrom(value).buildPartial();
+          } else {
+            stopAudio_ = value;
+          }
+          onChanged();
+        } else {
+          stopAudioBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      /**
+       * <code>optional .StopAudio stop_audio = 6;</code>
+       */
+      public Builder clearStopAudio() {
+        if (stopAudioBuilder_ == null) {
+          stopAudio_ = com.hello.messeji.api.AudioCommands.StopAudio.getDefaultInstance();
+          onChanged();
+        } else {
+          stopAudioBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000020);
+        return this;
+      }
+      /**
+       * <code>optional .StopAudio stop_audio = 6;</code>
+       */
+      public com.hello.messeji.api.AudioCommands.StopAudio.Builder getStopAudioBuilder() {
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return getStopAudioFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .StopAudio stop_audio = 6;</code>
+       */
+      public com.hello.messeji.api.AudioCommands.StopAudioOrBuilder getStopAudioOrBuilder() {
+        if (stopAudioBuilder_ != null) {
+          return stopAudioBuilder_.getMessageOrBuilder();
+        } else {
+          return stopAudio_;
+        }
+      }
+      /**
+       * <code>optional .StopAudio stop_audio = 6;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          com.hello.messeji.api.AudioCommands.StopAudio, com.hello.messeji.api.AudioCommands.StopAudio.Builder, com.hello.messeji.api.AudioCommands.StopAudioOrBuilder> 
+          getStopAudioFieldBuilder() {
+        if (stopAudioBuilder_ == null) {
+          stopAudioBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              com.hello.messeji.api.AudioCommands.StopAudio, com.hello.messeji.api.AudioCommands.StopAudio.Builder, com.hello.messeji.api.AudioCommands.StopAudioOrBuilder>(
+                  getStopAudio(),
+                  getParentForChildren(),
+                  isClean());
+          stopAudio_ = null;
+        }
+        return stopAudioBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:Message)
@@ -3165,18 +3387,19 @@ public final class Messeji {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\rmesseji.proto\032\022sleep_sounds.proto\"B\n\025R" +
-      "eceiveMessageRequest\022\020\n\010sense_id\030\001 \002(\t\022\027" +
-      "\n\017message_read_id\030\002 \003(\003\"\251\001\n\007Message\022\021\n\ts" +
-      "ender_id\030\001 \001(\t\022\r\n\005order\030\002 \002(\003\022\022\n\nmessage" +
-      "_id\030\003 \001(\003\022\033\n\004type\030\004 \002(\0162\r.Message.Type\0221" +
-      "\n\024sleep_sounds_command\030\005 \001(\0132\023.SleepSoun" +
-      "dsCommand\"\030\n\004Type\022\020\n\014SLEEP_SOUNDS\020\000\")\n\014B" +
-      "atchMessage\022\031\n\007message\030\001 \003(\0132\010.Message\"\203" +
-      "\001\n\rMessageStatus\022\022\n\nmessage_id\030\001 \002(\003\022#\n\005" +
-      "state\030\002 \002(\0162\024.MessageStatus.State\"9\n\005Sta",
-      "te\022\013\n\007PENDING\020\000\022\010\n\004SENT\020\001\022\014\n\010RECEIVED\020\002\022" +
-      "\013\n\007EXPIRED\020\003B\027\n\025com.hello.messeji.api"
+      "\n\rmesseji.proto\032\024audio_commands.proto\"B\n" +
+      "\025ReceiveMessageRequest\022\020\n\010sense_id\030\001 \002(\t" +
+      "\022\027\n\017message_read_id\030\002 \003(\003\"\304\001\n\007Message\022\021\n" +
+      "\tsender_id\030\001 \001(\t\022\r\n\005order\030\002 \002(\003\022\022\n\nmessa" +
+      "ge_id\030\003 \001(\003\022\033\n\004type\030\004 \002(\0162\r.Message.Type" +
+      "\022\036\n\nplay_audio\030\005 \001(\0132\n.PlayAudio\022\036\n\nstop" +
+      "_audio\030\006 \001(\0132\n.StopAudio\"&\n\004Type\022\016\n\nPLAY" +
+      "_AUDIO\020\000\022\016\n\nSTOP_AUDIO\020\001\")\n\014BatchMessage" +
+      "\022\031\n\007message\030\001 \003(\0132\010.Message\"\203\001\n\rMessageS" +
+      "tatus\022\022\n\nmessage_id\030\001 \002(\003\022#\n\005state\030\002 \002(\016",
+      "2\024.MessageStatus.State\"9\n\005State\022\013\n\007PENDI" +
+      "NG\020\000\022\010\n\004SENT\020\001\022\014\n\010RECEIVED\020\002\022\013\n\007EXPIRED\020" +
+      "\003B\027\n\025com.hello.messeji.api"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -3189,7 +3412,7 @@ public final class Messeji {
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          com.hello.messeji.api.SleepSounds.getDescriptor(),
+          com.hello.messeji.api.AudioCommands.getDescriptor(),
         }, assigner);
     internal_static_ReceiveMessageRequest_descriptor =
       getDescriptor().getMessageTypes().get(0);
@@ -3202,7 +3425,7 @@ public final class Messeji {
     internal_static_Message_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_Message_descriptor,
-        new java.lang.String[] { "SenderId", "Order", "MessageId", "Type", "SleepSoundsCommand", });
+        new java.lang.String[] { "SenderId", "Order", "MessageId", "Type", "PlayAudio", "StopAudio", });
     internal_static_BatchMessage_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_BatchMessage_fieldAccessorTable = new
@@ -3215,7 +3438,7 @@ public final class Messeji {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_MessageStatus_descriptor,
         new java.lang.String[] { "MessageId", "State", });
-    com.hello.messeji.api.SleepSounds.getDescriptor();
+    com.hello.messeji.api.AudioCommands.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

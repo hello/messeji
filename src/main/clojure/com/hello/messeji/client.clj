@@ -48,7 +48,7 @@
         order (System/nanoTime)
         message (pb/message {:sender-id "clj-client"
                              :order order
-                             :type (pb/message-type :sleep-sounds)})
+                             :type (pb/message-type :stop-audio)})
         response (post url sense-id (.toByteArray message))]
     (-> response
       :body

@@ -19,15 +19,15 @@
         sense-id "sense1"
         message (pb/message {:sender-id "test"
                              :order 100
-                             :type (pb/message-type :sleep-sounds)
-                             :sleep-sounds-command (pb/sleep-sounds-command {})})
+                             :type (pb/message-type :stop-audio)
+                             :stop-audio (pb/stop-audio {:fade-out-duration-seconds 1})})
         created (db/create-message message-store sense-id message)]
     (is (.hasMessageId created))
     (are [m] (= (m created) (m message))
       .getSenderId
       .getOrder
       .getType
-      .getSleepSoundsCommand)))
+      .getStopAudio)))
 
 (defn- nanos
   "Convert milliseconds to nanoseconds"
@@ -38,6 +38,7 @@
   (let [max-age-millis 10000 ; 10 seconds
         sense-id "sense1"
         message-store (mem/mk-message-store max-age-millis)
+        stop-audio (pb/stop-audio {:fade-out-duration-seconds 1})
         message-1 (at-time
                     (nanos 0) ; First message is at time t0
                     (db/create-message
@@ -46,8 +47,8 @@
                       (pb/message
                         {:sender-id "test"
                          :order 100
-                         :type (pb/message-type :sleep-sounds)
-                         :sleep-sounds-command (pb/sleep-sounds-command {})})))
+                         :type (pb/message-type :stop-audio)
+                         :stop-audio stop-audio})))
          message-2 (at-time
                      (nanos 4000) ; 4 seconds in
                      (db/create-message
@@ -56,8 +57,8 @@
                        (pb/message
                          {:sender-id "test"
                           :order 101
-                          :type (pb/message-type :sleep-sounds)
-                          :sleep-sounds-command (pb/sleep-sounds-command {})})))
+                          :type (pb/message-type :stop-audio)
+                          :stop-audio stop-audio})))
          message-3 (at-time
                      (nanos 9000) ; 9 seconds in
                       (db/create-message
@@ -66,8 +67,8 @@
                         (pb/message
                           {:sender-id "test"
                            :order 103
-                           :type (pb/message-type :sleep-sounds)
-                           :sleep-sounds-command (pb/sleep-sounds-command {})})))
+                           :type (pb/message-type :stop-audio)
+                           :stop-audio stop-audio})))
          message-4 (at-time
                      (nanos 5000) ; 5 seconds in
                       (db/create-message
@@ -76,8 +77,8 @@
                         (pb/message
                           {:sender-id "test"
                            :order 102
-                           :type (pb/message-type :sleep-sounds)
-                           :sleep-sounds-command (pb/sleep-sounds-command {})})))
+                           :type (pb/message-type :stop-audio)
+                           :stop-audio stop-audio})))
         order-set (fn [messages] (->> messages (map #(.getOrder %)) set))]
     (testing "Only get messages for the correct sense id"
       (let [messages (at-time (nanos 9500) (doall (db/unacked-messages message-store sense-id)))]
@@ -96,7 +97,7 @@
         message-store (mem/mk-message-store max-age-millis)
         message (pb/message {:sender-id "test"
                              :order 100
-                             :type (pb/message-type :sleep-sounds)})
+                             :type (pb/message-type :play-audio)})
         ;; Insert message at time 0 and get new message ID.
         insert-msg #(at-time 0
                       (.getMessageId

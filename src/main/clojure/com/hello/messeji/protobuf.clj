@@ -7,7 +7,8 @@
       Messeji$MessageStatus
       Messeji$MessageStatus$State
       Messeji$ReceiveMessageRequest
-      SleepSounds$SleepSoundsCommand]
+      AudioCommands$PlayAudio
+      AudioCommands$StopAudio]
     [java.io InputStream]))
 
 
@@ -20,7 +21,9 @@
 
   (receive-message-request ^Messeji$ReceiveMessageRequest [this])
 
-  (sleep-sounds-command ^SleepSounds$SleepSoundsCommand [this]))
+  (play-audio ^AudioCommands$PlayAudio [this])
+
+  (stop-audio ^AudioCommands$StopAudio [this]))
 
 
 ;; Maps (message {:sender-id "sender1", ...})
@@ -28,14 +31,14 @@
   MessejiProtobuf
 
   (message
-    [{:keys [sender-id order message-id type sleep-sounds-command]}]
+    [{:keys [sender-id order message-id type play-audio stop-audio]}]
     (cond-> (Messeji$Message/newBuilder)
       sender-id (.setSenderId sender-id)
       :always (.setOrder order)
       message-id (.setMessageId message-id)
       :always (.setType type)
-      sleep-sounds-command (.setSleepSoundsCommand
-                            ^SleepSounds$SleepSoundsCommand sleep-sounds-command)
+      play-audio (.setPlayAudio play-audio)
+      stop-audio (.setStopAudio stop-audio)
       :always .build))
 
   (batch-message
@@ -60,9 +63,24 @@
         (.addMessageReadId builder id))
       (.build builder)))
 
-  (sleep-sounds-command
-    [m]
-    (.build (SleepSounds$SleepSoundsCommand/newBuilder))))
+  (play-audio
+    [{:keys [file-path volume-percent duration-seconds
+             fade-out-duration-seconds fade-in-duration-seconds]}]
+    (let [builder (AudioCommands$PlayAudio/newBuilder)]
+      (.. builder
+        (setFilePath file-path)
+        (setVolumePercent volume-percent)
+        (setFadeOutDurationSeconds fade-out-duration-seconds)
+        (setFadeInDurationSeconds fade-in-duration-seconds))
+      (when duration-seconds
+        (.setDurationSeconds duration-seconds))
+      (.build builder)))
+
+  (stop-audio
+    [{:keys [fade-out-duration-seconds]}]
+    (.. (AudioCommands$StopAudio/newBuilder)
+      (setFadeOutDurationSeconds fade-out-duration-seconds)
+      build)))
 
 
 ;; byte[]
@@ -85,9 +103,13 @@
     [bytes]
     (Messeji$ReceiveMessageRequest/parseFrom ^bytes bytes))
 
-  (sleep-sounds-command
+  (play-audio
     [bytes]
-    (SleepSounds$SleepSoundsCommand/parseFrom ^bytes bytes)))
+    (AudioCommands$PlayAudio/parseFrom ^bytes bytes))
+
+  (stop-audio
+    [bytes]
+    (AudioCommands$StopAudio/parseFrom ^bytes bytes)))
 
 
 (extend-type InputStream
@@ -109,14 +131,19 @@
     [stream]
     (Messeji$ReceiveMessageRequest/parseFrom ^InputStream stream))
 
-  (sleep-sounds-command
+  (play-audio
     [stream]
-    (SleepSounds$SleepSoundsCommand/parseFrom ^InputStream stream)))
+    (AudioCommands$PlayAudio/parseFrom ^InputStream stream))
+
+  (stop-audio
+    [stream]
+    (AudioCommands$StopAudio/parseFrom ^InputStream stream)))
 
 
 (def message-type
   "Map of keywords to Message.Type objects."
-  {:sleep-sounds Messeji$Message$Type/SLEEP_SOUNDS})
+  {:play-audio Messeji$Message$Type/PLAY_AUDIO
+   :stop-audio Messeji$Message$Type/STOP_AUDIO})
 
 (def message-status-state
   "Map of keywords to MessageStatus.State objects."
