@@ -112,7 +112,7 @@
         send (fn [message-map]
                 @(http/post
                   (str (client/localhost) "/send")
-                  {:body (-> message-map (assoc :type (pb/message-type :sleep-sounds))
+                  {:body (-> message-map (assoc :type (pb/message-type :stop-audio))
                               pb/message .toByteArray)
                    :headers {"X-Hello-Sense-Id" sense-id-1}}))
         send-msg (comp pb/message :body send)
