@@ -44,13 +44,7 @@
 (defn process-stream
   [stream]
   (doseq [timestamp (s/stream->seq stream 1000)]
-    (println "Message took" (/ timestamp 1000000.) "ms"))
-  #_(loop []
-    (let [time-deferred (s/take! stream)]
-      (prn (deferred/realized? time-deferred))
-      (when (deferred/realized? time-deferred)
-        (println "Message took" (/ @time-deferred 1000000.) "ms")
-        (recur)))))
+    (println "Message took" (/ timestamp 1000000.) "ms")))
 
 (defn run-test
   "The input file contains a list of senseid, aeskey pairs separated by a single space.
@@ -58,9 +52,9 @@
   sends a bunch of messages to randomly chosen connected senses. The latencies are
   measured for these messages, from the time they were sent to the time they
   were received by the 'sense'."
-  [host filename]
-  (let [sense-id-key-pairs (set (take 100 (parse-file filename)))
-        _ (prn sense-id-key-pairs)
+  [host filename & [limit]]
+  (let [sense-id-key-pairs (set (parse-file filename))
+        sense-id-key-pairs (if limit (take limit sense-id-key-pairs) sense-id-key-pairs)
         sense-ids (map first sense-id-key-pairs)
         message-latency-stream (s/stream)]
     (with-open [senses (connect-senses host sense-id-key-pairs (callback message-latency-stream))]
@@ -72,7 +66,6 @@
 (defn -main
   [host filename]
   (run-test host filename))
-
 
 (defn scan-key-store
   [limit]

@@ -12,7 +12,7 @@
     [org.apache.commons.codec.binary Hex]))
 
 (def ^:dynamic *connection-pool*
-  (http/connection-pool {:connections-per-host 200}))
+  (http/connection-pool {:connections-per-host 1000}))
 
 (defn localhost
   "Reads the config file (default is dev.edn) and concatenate the port from
