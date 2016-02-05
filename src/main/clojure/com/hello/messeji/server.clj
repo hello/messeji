@@ -132,6 +132,7 @@
 
 (defn handle-send
   [connections-atom message-store request]
+  (prn request)
   (let [sense-id (request-sense-id request)
         message (pb/message (:body request))
         message-with-id (db/create-message message-store sense-id message)]
@@ -200,7 +201,7 @@
         client-config (.. (ClientConfiguration.)
                         (withConnectionTimeout 200)
                         (withMaxErrorRetry 1)
-                        (withMaxConnections 100))
+                        (withMaxConnections 1000))
         ks-ddb-client (doto (AmazonDynamoDBClient. credentials-provider client-config)
                         (.setEndpoint (get-in config-map [:key-store :endpoint])))
         key-store (ksddb/key-store

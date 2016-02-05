@@ -11,6 +11,9 @@
     [com.hello.messeji SignedMessage]
     [org.apache.commons.codec.binary Hex]))
 
+(def ^:dynamic *connection-pool*
+  (http/connection-pool {:connections-per-host 200}))
+
 (defn localhost
   "Reads the config file (default is dev.edn) and concatenate the port from
   that config with localhost."
@@ -35,7 +38,8 @@
   (http/post
     url
     {:body body
-     :headers {"X-Hello-Sense-Id" sense-id}}))
+     :headers {"X-Hello-Sense-Id" sense-id}
+     :pool *connection-pool*}))
 
 (def ^:private post
   (comp deref post-async))

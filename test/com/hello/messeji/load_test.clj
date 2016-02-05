@@ -6,6 +6,12 @@
     [manifold.deferred :as deferred]
     [manifold.stream :as s])
   (:import
+    [com.amazonaws.auth DefaultAWSCredentialsProviderChain]
+    [com.amazonaws.services.dynamodbv2 AmazonDynamoDBClient]
+    [com.amazonaws.services.dynamodbv2.model
+      AttributeValue
+      ScanRequest
+      ScanResult]
     [com.hello.messeji.api Messeji$Message]))
 
 (defn connect-senses
@@ -37,8 +43,11 @@
 
 (defn process-stream
   [stream]
-  (loop []
+  (doseq [timestamp (s/stream->seq stream 1000)]
+    (println "Message took" (/ timestamp 1000000.) "ms"))
+  #_(loop []
     (let [time-deferred (s/take! stream)]
+      (prn (deferred/realized? time-deferred))
       (when (deferred/realized? time-deferred)
         (println "Message took" (/ @time-deferred 1000000.) "ms")
         (recur)))))
@@ -50,15 +59,33 @@
   measured for these messages, from the time they were sent to the time they
   were received by the 'sense'."
   [host filename]
-  (let [sense-id-key-pairs (set (parse-file filename))
+  (let [sense-id-key-pairs (set (take 100 (parse-file filename)))
         _ (prn sense-id-key-pairs)
         sense-ids (map first sense-id-key-pairs)
         message-latency-stream (s/stream)]
     (with-open [senses (connect-senses host sense-id-key-pairs (callback message-latency-stream))]
       (dotimes [i (* (count sense-ids) 5)]
+        (prn i)
         (client/send-message host (rand-nth sense-ids)))
       (process-stream message-latency-stream))))
 
 (defn -main
   [host filename]
   (run-test host filename))
+
+
+(defn scan-key-store
+  [limit]
+  (let [table-name "key_store"
+        client (AmazonDynamoDBClient. (DefaultAWSCredentialsProviderChain.))
+        request (.. (ScanRequest. table-name)
+                  (withLimit (int limit))
+                  (withReturnConsumedCapacity "TOTAL"))
+        result (.scan client request)]
+    (println "Consumed capacity:" (.. result getConsumedCapacity getCapacityUnits))
+    (mapv
+      #(str
+        (.. % (get "device_id") getS)
+        " "
+        (.. % (get "aes_key") getS))
+      (.getItems result))))
