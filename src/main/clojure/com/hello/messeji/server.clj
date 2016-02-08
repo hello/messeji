@@ -132,7 +132,6 @@
 
 (defn handle-send
   [connections-atom message-store request]
-  (prn request)
   (let [sense-id (request-sense-id request)
         message (pb/message (:body request))
         message-with-id (db/create-message message-store sense-id message)]
