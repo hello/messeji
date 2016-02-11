@@ -200,7 +200,7 @@
         client-config (.. (ClientConfiguration.)
                         (withConnectionTimeout 200)
                         (withMaxErrorRetry 1)
-                        (withMaxConnections 100))
+                        (withMaxConnections 1000))
         ks-ddb-client (doto (AmazonDynamoDBClient. credentials-provider client-config)
                         (.setEndpoint (get-in config-map [:key-store :endpoint])))
         key-store (ksddb/key-store

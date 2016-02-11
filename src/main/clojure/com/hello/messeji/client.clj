@@ -31,11 +31,13 @@
     (byte-array (concat body iv sig))))
 
 (defn- post-async
-  [url sense-id body]
+  [url sense-id body & [post-options]]
   (http/post
     url
-    {:body body
-     :headers {"X-Hello-Sense-Id" sense-id}}))
+    (merge
+      {:body body
+       :headers {"X-Hello-Sense-Id" sense-id}}
+      post-options)))
 
 (def ^:private post
   (comp deref post-async))
@@ -88,14 +90,14 @@
       pb/message-status)))
 
 (defn- receive
-  [host sense-id key acked-message-ids]
+  [host sense-id key acked-message-ids post-options]
   (let [url (str host "/receive")
         request-proto (pb/receive-message-request
                         {:sense-id sense-id
                          :message-read-ids acked-message-ids})
         signed-proto (sign-protobuf request-proto key)]
     (deferred/chain
-      (post-async url sense-id signed-proto)
+      (post-async url sense-id signed-proto post-options)
       (fn [response]
         (->> response
           :body
@@ -114,13 +116,13 @@
     - acked-message-ids ([Int]) - message ids to acknowledge in the ReceiveMessageRequest
 
   Returns BatchMessage."
-  [host sense-id key acked-message-ids]
-  @(receive host sense-id key acked-message-ids))
+  [host sense-id key acked-message-ids & [post-options]]
+  @(receive host sense-id key acked-message-ids post-options))
 
 (defn receive-messages-async
   "Same as receive-messages, but returns a manifold deferred."
-  [host sense-id key acked-message-ids]
-  (receive host sense-id key acked-message-ids))
+  [host sense-id key acked-message-ids & [post-options]]
+  (receive host sense-id key acked-message-ids post-options))
 
 (defn- batch-messages
   [batch-message]
@@ -136,13 +138,13 @@
   The messages are passed as a seq of Message objects.
 
   Returns a Closeable object. Call .close() to shut down the polling thread."
-  ^java.io.Closeable [host sense-id key callback-fn]
+  ^java.io.Closeable [host sense-id key callback-fn & [post-options]]
   (let [running (atom true)]
     (future
       (loop [message-ids []]
         (when @running
           (let [batch-message (try
-                                (receive-messages host sense-id key message-ids)
+                                (receive-messages host sense-id key message-ids post-options)
                                 (catch Exception e
                                   ;; Print the exception and sleep for a bit
                                   ;; before retrying.
