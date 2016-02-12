@@ -207,8 +207,10 @@
                     (get-in config-map [:key-store :table])
                     ks-ddb-client)
         timeout (get-in config-map [:http :receive-timeout])
-        ;; TODO config for redis
-        message-store (redis/mk-message-store {} (:max-message-age-millis config-map) 60)
+        message-store (redis/mk-message-store
+                        {:spec (get-in config-map [:redis :spec])}
+                        (:max-message-age-millis config-map)
+                        (get-in config-map [:redis :delete-after-seconds]))
         server (http/start-server
                  (handler connections key-store message-store timeout)
                  {:port (get-in config-map [:http :port])})]

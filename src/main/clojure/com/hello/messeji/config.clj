@@ -12,6 +12,8 @@
           :receive-timeout s/Int}
    :logging {:property-file-name s/Str
              :properties {:log-level s/Str}}
+   :redis {:spec {s/Keyword s/Any} ;; See documentation for carmine/wcar spec
+           :delete-after-seconds s/Int}
    :max-message-age-millis s/Int})
 
 (defn- deep-merge
