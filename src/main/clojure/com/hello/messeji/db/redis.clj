@@ -71,7 +71,7 @@
   ([sense-id]
     (r-get-message-ids-for-sense sense-id "-inf" "+inf"))
   ([sense-id min-ts max-ts]
-    (redis/with-parser
+    (redis/parse
       (fn [xs] (->> xs (map str->long) (partition 2)))
       (redis/zrangebyscore (sense-messages-key sense-id) min-ts max-ts "WITHSCORES"))))
 
@@ -90,7 +90,7 @@
 
 (defn- r-timestamp
   []
-  (redis/with-parser redis-time->milliseconds (redis/time)))
+  (redis/parse redis-time->milliseconds (redis/time)))
 
 (defn- r-message-set
   [k v msg-id]
@@ -116,7 +116,7 @@
 (defn- r-message-get
   "Return a map containing the keys in ks for the message id."
   [id & ks]
-  (redis/with-parser
+  (redis/parse
     (message-parser ks)
     (apply redis/hmget (message-key id) ks)))
 
@@ -189,7 +189,10 @@
 
   (acknowledge
     [_ message-ids]
-    (redis/wcar conn-opts (mapv (partial r-message-set :acknowledged? true) message-ids))))
+    (redis/wcar conn-opts (mapv (partial r-message-set :acknowledged? true) message-ids)))
+
+  java.io.Closeable
+  (close [_] nil))
 
 
 (defn mk-message-store

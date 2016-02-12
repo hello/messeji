@@ -8,7 +8,7 @@
     [clojure.tools.logging :as log]
     [com.hello.messeji.config :as messeji-config]
     [com.hello.messeji.db :as db]
-    [com.hello.messeji.db.in-mem :as mem]
+    [com.hello.messeji.db.redis :as redis]
     [com.hello.messeji.db.key-store-ddb :as ksddb]
     [com.hello.messeji.middleware :as middleware]
     [com.hello.messeji.protobuf :as pb]
@@ -207,7 +207,8 @@
                     (get-in config-map [:key-store :table])
                     ks-ddb-client)
         timeout (get-in config-map [:http :receive-timeout])
-        message-store (mem/mk-message-store (:max-message-age-millis config-map))
+        ;; TODO config for redis
+        message-store (redis/mk-message-store {} (:max-message-age-millis config-map) 60)
         server (http/start-server
                  (handler connections key-store message-store timeout)
                  {:port (get-in config-map [:http :port])})]
