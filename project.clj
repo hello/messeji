@@ -12,7 +12,8 @@
                                                     javax.jms/jms
                                                     com.sun.jmdk/jmxtools
                                                     com.sun.jmx/jmxri]]
-                 [prismatic/schema "1.0.4"]]
+                 [prismatic/schema "1.0.4"]
+                 [com.taoensso/carmine "2.12.2"]]
   :plugins [[s3-wagon-private "1.2.0"]
             [lein-pprint "1.1.1"]]
   :source-paths ["src" "src/main/clojure"]
