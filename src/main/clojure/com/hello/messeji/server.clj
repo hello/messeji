@@ -235,10 +235,18 @@
       {:key-store key-store
        :message-store message-store})))
 
+(defn- shutdown-handler
+  [^Service service]
+  (fn []
+    (log/info "Shutting down...")
+    (.close service)
+    (log/info "Service shutdown complete.")))
+
 (defn -main
   [config-file & args]
   (let [config (apply messeji-config/read config-file args)
         server (start-server config)]
     (log/info "Using the following config: " config)
     (log/info "Server: " server)
+    (.addShutdownHook (Runtime/getRuntime) (Thread. (shutdown-handler server)))
     server))
