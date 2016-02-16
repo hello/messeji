@@ -6,12 +6,15 @@
     [clojure.java.io :as io]
     [clojure.pprint :refer [pprint]]
     [clojure.tools.logging :as log]
-    [com.hello.messeji.config :as messeji-config]
-    [com.hello.messeji.db :as db]
-    [com.hello.messeji.db.redis :as redis]
-    [com.hello.messeji.db.key-store-ddb :as ksddb]
-    [com.hello.messeji.middleware :as middleware]
-    [com.hello.messeji.protobuf :as pb]
+    [com.hello.messeji
+      [config :as messeji-config]
+      [db :as db]
+      [middleware :as middleware]
+      [protobuf :as pb]
+      [pubsub :as pubsub]]
+    [com.hello.messeji.db
+      [redis :as redis]
+      [key-store-ddb :as ksddb]]
     [compojure.core :as compojure :refer [GET POST]]
     [compojure.route :as route]
     [manifold.deferred :as deferred]
@@ -131,11 +134,11 @@
       delivery)))
 
 (defn handle-send
-  [connections-atom message-store request]
+  [message-store request pubsub-conn-opts]
   (let [sense-id (request-sense-id request)
         message (pb/message (:body request))
         message-with-id (db/create-message message-store sense-id message)]
-    (send-messages message-store (get @connections-atom sense-id) [message-with-id])
+    (pubsub/publish pubsub-conn-opts sense-id message-with-id)
     {:status 201
      :body message-with-id}))
 
@@ -153,14 +156,14 @@
     {:status 404, :body ""}))
 
 (defn handler
-  [connections key-store message-store timeout]
+  [connections key-store message-store timeout pubsub-conn-opts]
   (let [routes
         (compojure/routes
           (GET "/healthz" _ {:status 200 :body "ok"})
           (POST "/receive" request
             (handle-receive connections key-store message-store timeout request))
           (POST "/send" request
-            (handle-send connections message-store request))
+            (handle-send message-store request pubsub-conn-opts))
           (GET "/status/:message-id" [message-id]
             (handle-status message-store message-id))
           (route/not-found ""))]
@@ -172,8 +175,15 @@
        wrap-content-type
        middleware/wrap-500)))
 
+(defn pubsub-handler
+  [connections-atom message-store]
+  (fn [sense-id message]
+    ;; TODO see if message already delivered?
+    ;; TODO do not want to do this in subscribing thread...
+    (send-messages message-store (@connections-atom sense-id) [message])))
+
 (defrecord Service
-  [config connections server data-stores]
+  [config connections server listener data-stores]
 
   java.io.Closeable
   (close [this]
@@ -181,6 +191,7 @@
     (.close server)
     (doseq [[_ store] data-stores]
       (.close store))
+    (.close listener)
     (reset! connections nil)))
 
 (defn- configure-logging
@@ -207,17 +218,20 @@
                     (get-in config-map [:key-store :table])
                     ks-ddb-client)
         timeout (get-in config-map [:http :receive-timeout])
+        redis-spec (get-in config-map [:redis :spec])
         message-store (redis/mk-message-store
-                        {:spec (get-in config-map [:redis :spec])}
+                        {:spec redis-spec}
                         (:max-message-age-millis config-map)
                         (get-in config-map [:redis :delete-after-seconds]))
+        listener (pubsub/subscribe redis-spec (pubsub-handler connections message-store))
         server (http/start-server
-                 (handler connections key-store message-store timeout)
+                 (handler connections key-store message-store timeout {:spec redis-spec})
                  {:port (get-in config-map [:http :port])})]
     (->Service
       config-map
       connections
       server
+      listener
       {:key-store key-store
        :message-store message-store})))
 
