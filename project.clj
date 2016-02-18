@@ -14,7 +14,8 @@
                                                     com.sun.jmx/jmxri]]
                  [prismatic/schema "1.0.4"]]
   :plugins [[s3-wagon-private "1.2.0"]
-            [lein-pprint "1.1.1"]]
+            [lein-pprint "1.1.1"]
+            [ystad/lein-deb "1.0.0"]]
   :source-paths ["src" "src/main/clojure"]
   :java-source-paths ["src/main/java"]  ; Java source is stored separately.
   :resource-paths ["resources"]
@@ -25,19 +26,33 @@
   :test-selectors {:default (complement :integration)
                    :integration :integration
                    :all (constantly true)}
-  :release-tasks [["vcs" "assert-committed"]
+  :aliases {"package-deb" ["do" ["clean"] ["uberjar"] ["deb"]]}
+  :release-tasks [["clean"]
+                  ["test"]
+                  ["vcs" "assert-committed"]
                   ["change" "version" "leiningen.release/bump-version" "release"]
+                  ["pprint" ":version"]
                   ["vcs" "commit"]
                   ["vcs" "tag" "v" "--no-sign"]
-                  ["deploy-uberjar"]
+                  ["package-deb"]
                   ["change" "version" "leiningen.release/bump-version"]
                   ["vcs" "commit"]
                   ["vcs" "push"]]
   :deploy-branches ["master"]
+  :deb {
+    :filesets [{:file "target/messeji-*-standalone.jar"
+                :fullpath "/opt/hello/messeji.jar"}
+               {:file "resources/config/prod.edn"
+                :fullpath "/etc/hello/messeji.prod.edn"}
+               {:file "init/messeji.conf"
+                :fullpath "/etc/init/messeji.conf"}]}
   :repositories [["releases" {:url "s3p://hello-maven/release/"
                               :username :env/aws_access_key_id
                               :passphrase :env/aws_secret_key
                               :sign-releases false}]
                  ["snapshots" {:url "s3p://hello-maven/snapshot/"
                                :username :env/aws_access_key_id
-                               :passphrase :env/aws_secret_key}]])
+                               :passphrase :env/aws_secret_key}]
+                 ["packages" {:url "s3p://hello-deploy/packages/"
+                              :username :env/aws_access_key_id
+                              :passphrase :env/aws_secret_key}]])
