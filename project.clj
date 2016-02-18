@@ -1,4 +1,4 @@
-(defproject com.hello/messeji "0.1.3"
+(defproject com.hello/messeji "0.1.4-SNAPSHOT"
   :description "Async messaging service for communicating with Sense"
   :url "https://github.com/hello/messeji"
   :dependencies [[org.clojure/clojure "1.7.0"]
