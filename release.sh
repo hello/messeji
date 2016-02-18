@@ -1,4 +1,3 @@
-rm *.deb
 VERSION_QUOTED=`lein release $1`
 TEMP="${$VERSION_QUOTED%\"}"
 VERSION="${TEMP#\"}"
