@@ -33,7 +33,7 @@
                 ["clean"]
                 ["test"]
                 ["vcs" "assert-committed"]
-                ["change" "version" "leiningen.release/bump-version" ":patch"]
+                ["change" "version" "leiningen.release/bump-version" "release" ":patch"]
                 ["vcs" "commit"]
                 ["vcs" "tag" "v" "--no-sign"]]
             "dev-version"
