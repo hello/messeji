@@ -27,18 +27,24 @@
   :test-selectors {:default (complement :integration)
                    :integration :integration
                    :all (constantly true)}
-  :aliases {"package-deb" ["do" ["clean"] ["uberjar"] ["deb"]]}
-  :release-tasks [["clean"]
-                  ["test"]
-                  ["vcs" "assert-committed"]
-                  ["change" "version" "leiningen.release/bump-version" "release"]
+  :aliases {"package-deb" ["do" ["clean"] ["uberjar"] ["deb"]]
+            "prep-release"
+              ["do"
+                ["clean"]
+                ["test"]
+                ["vcs" "assert-committed"]
+                ["change" "version" "leiningen.release/bump-version" ":patch"]
+                ["vcs" "commit"]
+                ["vcs" "tag" "v" "--no-sign"]]
+            "dev-version"
+              ["do"
+                ["change" "version" "leiningen.release/bump-version"]
+                ["vcs" "commit"]
+                ["vcs" "push"]]}
+  :release-tasks [["prep-release"]
                   ["pprint" ":version"]
-                  ["vcs" "commit"]
-                  ["vcs" "tag" "v" "--no-sign"]
                   ["package-deb"]
-                  ["change" "version" "leiningen.release/bump-version"]
-                  ["vcs" "commit"]
-                  ["vcs" "push"]]
+                  ["dev-version"]]
   :deploy-branches ["master"]
   :deb {
     :filesets [{:file "target/messeji-*-standalone.jar"
