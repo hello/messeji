@@ -95,10 +95,10 @@ Because it's Closeable, you could also wrap it in `with-open` etc.
 
 
 ## Releasing
-Releasing a new JAR is simple. Just run:
+Releasing a new debian package is easy.
 
 ```bash
-lein release :patch
+./release.sh
 ```
 
-Instead of `:patch`, you can also use `:minor` or `:major` to update the version numbers. For more details, see the [Lein Deploy documentation](https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md).
+This will release the new version to our maven repository, upload the configs, and deploy the debian package. From there, it's all `sanders create/deploy/confirm/sunset` and you're golden.
