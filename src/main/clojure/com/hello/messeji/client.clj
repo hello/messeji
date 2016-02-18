@@ -130,6 +130,15 @@
     .getMessageList
     seq))
 
+(defn print-timing
+  "Callback for `start-sense` to print the delta between the order of the message
+  (as timestamp in nanoseconds) and the current time in nanoseconds.
+  Only works if the message was sent from the same machine as the one executing
+  this function."
+  [messages]
+  (doseq [m messages]
+    (println "Took " (/ (- (System/nanoTime) (.getOrder m)) 1000000.) " ms")))
+
 (defn start-sense
   "Starts a new sense thread that receives messages and acknowledges read messages
   as they come in. The first 3 arguments are the same as receive-messages.

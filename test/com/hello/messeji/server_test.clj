@@ -3,11 +3,13 @@
     [aleph.http :as http]
     [clojure.test :refer :all]
     [com.hello.messeji.client :as client]
+    [com.hello.messeji.config :as messeji-config]
     [com.hello.messeji.db :as db]
     [com.hello.messeji.db.key-store-ddb :as ksddb]
     [com.hello.messeji.protobuf :as pb]
     [com.hello.messeji.server :as server]
-    [manifold.deferred :as deferred])
+    [manifold.deferred :as deferred]
+    [taoensso.carmine :as redis])
   (:import
     [com.hello.messeji.api
       Messeji$Message
@@ -31,10 +33,16 @@
 ;; Run for each test function
 (use-fixtures :each
   (fn [test]
-    (let [config-file (clojure.java.io/resource "config/dev.edn")]
+    (let [dev-config-file (clojure.java.io/resource "config/dev.edn")
+          config (update-in
+                  (messeji-config/read dev-config-file)
+                  [:redis :spec :db]
+                  inc)] ; Use a different DB for testing
       (with-redefs [ksddb/key-store (constantly mock-key-store)]
-        (with-open [server (server/-main config-file)]
-          (test))))))
+        (with-open [server (server/start-server config)]
+          (test)
+          (redis/wcar {:spec (get-in config [:redis :spec])}
+            (redis/flushdb)))))))
 
 (deftest ^:integration test-send
   (let [message (client/send-message (client/localhost) "sense1")]
