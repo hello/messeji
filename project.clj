@@ -33,14 +33,8 @@
                 ["clean"]
                 ["test"]
                 ["vcs" "assert-committed"]
-                ["change" "version" "leiningen.release/bump-version" "release" ":patch"]
-                ["vcs" "commit"]
-                ["vcs" "tag" "v" "--no-sign"]]
-            "dev-version"
-              ["do"
-                ["change" "version" "leiningen.release/bump-version"]
-                ["vcs" "commit"]
-                ["vcs" "push"]]}
+                ["change" "version" "leiningen.release/bump-version" "release" ":patch"]]
+            "bump-version" ["change" "version" "leiningen.release/bump-version"]}
   :release-tasks [["prep-release"]
                   ["pprint" ":version"]
                   ["package-deb"]

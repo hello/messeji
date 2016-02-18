@@ -1,4 +1,6 @@
 lein prep-release
+lein vcs commit
+lein vcs tag v --no-sign
 VERSION_QUOTED=`lein pprint :version`
 TEMP="${VERSION_QUOTED%\"}"
 VERSION="${TEMP#\"}"
@@ -18,4 +20,6 @@ s3cmd put $DEB "s3://hello-deploy/packages/com/hello/messeji/"$VERSION"/messeji_
 rm *.deb
 
 echo "Preparing new development version."
-lein dev-version
+lein bump-version
+lein vcs commit
+lein vcs push
