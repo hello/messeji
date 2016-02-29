@@ -155,25 +155,42 @@
     {:status 200, :body message-status}
     {:status 404, :body ""}))
 
-(defn handler
-  [connections key-store message-store timeout pubsub-conn-opts]
-  (let [routes
-        (compojure/routes
-          (GET "/healthz" _ {:status 200 :body "ok"})
-          (POST "/receive" request
-            (handle-receive connections key-store message-store timeout request))
-          (POST "/send" request
-            (handle-send message-store request pubsub-conn-opts))
-          (GET "/status/:message-id" [message-id]
-            (handle-status message-store message-id))
-          (route/not-found ""))]
-    (-> routes
+(defn mk-routes
+  [& routes]
+  (apply
+    compojure/routes
+    (concat
+      routes
+      [(GET "/healthz" _ {:status 200 :body "ok"})
+       (route/not-found "")])))
+
+ (defn wrap-routes
+   [routes]
+   (-> routes
        middleware/wrap-log-request
        middleware/wrap-protobuf-request
        middleware/wrap-protobuf-response
        middleware/wrap-invalid-request
        wrap-content-type
-       middleware/wrap-500)))
+       middleware/wrap-500))
+
+(defn receive-handler
+  [connections key-store message-store timeout]
+  (let [routes
+        (mk-routes
+          (POST "/receive" request
+            (handle-receive connections key-store message-store timeout request)))]
+    (wrap-routes routes)))
+
+(defn publish-handler
+  [message-store pubsub-conn-opts]
+  (let [routes
+        (mk-routes
+          (POST "/send" request
+            (handle-send message-store request pubsub-conn-opts))
+          (GET "/status/:message-id" [message-id]
+            (handle-status message-store message-id)))]
+    (wrap-routes routes)))
 
 (defn pubsub-handler
   [connections-atom message-store]
@@ -183,12 +200,13 @@
     (send-messages message-store (@connections-atom sense-id) [message])))
 
 (defrecord Service
-  [config connections server listener data-stores]
+  [config connections pub-server sub-server listener data-stores]
 
   java.io.Closeable
   (close [this]
     ;; Calls NioEventLoopGroup.shutdownGracefully()
-    (.close server)
+    (.close pub-server)
+    (.close sub-server)
     (doseq [[_ store] data-stores]
       (.close store))
     (.close listener)
@@ -224,13 +242,17 @@
                         (:max-message-age-millis config-map)
                         (get-in config-map [:redis :delete-after-seconds]))
         listener (pubsub/subscribe redis-spec (pubsub-handler connections message-store))
-        server (http/start-server
-                 (handler connections key-store message-store timeout {:spec redis-spec})
-                 {:port (get-in config-map [:http :port])})]
+        pub-server (http/start-server
+                    (publish-handler message-store {:spec redis-spec})
+                    {:port (get-in config-map [:http :pub-port])})
+        sub-server (http/start-server
+                    (receive-handler connections key-store message-store timeout)
+                    {:port (get-in config-map [:http :sub-port])})]
     (->Service
       config-map
       connections
-      server
+      pub-server
+      sub-server
       listener
       {:key-store key-store
        :message-store message-store})))

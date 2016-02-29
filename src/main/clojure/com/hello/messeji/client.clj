@@ -14,11 +14,19 @@
 (defn localhost
   "Reads the config file (default is dev.edn) and concatenate the port from
   that config with localhost."
-  ([]
-    (localhost "resources/config/dev.edn"))
-  ([config-file-name]
-    (let [port (get-in (config/read config-file-name) [:http :port])]
+  ([port-key]
+    (localhost port-key "resources/config/dev.edn"))
+  ([port-key config-file-name]
+    (let [port (get-in (config/read config-file-name) [:http port-key])]
       (str "http://localhost:" port))))
+
+(def localhost-pub
+  "Localhost for the publisher endpoints."
+  (partial localhost :pub-port))
+
+(def localhost-sub
+  "Localhost for the subscriber endpoints."
+  (partial localhost :sub-port))
 
 (defn sign-protobuf
   "Given a protobuf object and a key, return a valid signed message."

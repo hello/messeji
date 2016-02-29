@@ -8,7 +8,8 @@
   "Schema for the configuration map."
   {:key-store {:table s/Str
                :endpoint s/Str}
-   :http {:port s/Int
+   :http {:pub-port s/Int
+          :sub-port s/Int
           :receive-timeout s/Int}
    :logging {:property-file-name s/Str
              :properties {:log-level s/Str}}

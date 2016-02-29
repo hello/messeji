@@ -45,15 +45,15 @@
             (redis/flushdb)))))))
 
 (deftest ^:integration test-send
-  (let [message (client/send-message (client/localhost) "sense1")]
+  (let [message (client/send-message (client/localhost-pub) "sense1")]
     (is (.hasMessageId message) "Message from server should have ID.")
-    (is (-> (client/get-status (client/localhost) (.getMessageId message))
+    (is (-> (client/get-status (client/localhost-pub) (.getMessageId message))
           .getState
           (= (pb/message-status-state :pending))))))
 
 (deftest ^:integration test-receive
   (testing "Receive request validation"
-    (let [url (str (client/localhost) "/receive")
+    (let [url (str (client/localhost-sub) "/receive")
           [sense-id aes-key] (first test-sense-id-key-pairs)
           mk-body #(-> {:sense-id %
                         :message-read-ids []}
@@ -87,7 +87,7 @@
           [sense-id aes-key] (first test-sense-id-key-pairs)
           resp (deferred/timeout!
                 (client/receive-messages-async
-                  (client/localhost)
+                  (client/localhost-sub)
                   sense-id
                   aes-key
                   [])
@@ -97,10 +97,10 @@
 
 (deftest ^:integration test-receive-multiple-messages
   (let [[sense-id-1 key-1] (first test-sense-id-key-pairs)
-        message-1 (client/send-message (client/localhost) sense-id-1)
-        message-2 (client/send-message (client/localhost) sense-id-1)
-        message-3 (client/send-message (client/localhost) (key (second test-sense-id-key-pairs)))
-        batch-message (client/receive-messages (client/localhost) sense-id-1 key-1 [])]
+        message-1 (client/send-message (client/localhost-pub) sense-id-1)
+        message-2 (client/send-message (client/localhost-pub) sense-id-1)
+        message-3 (client/send-message (client/localhost-pub) (key (second test-sense-id-key-pairs)))
+        batch-message (client/receive-messages (client/localhost-sub) sense-id-1 key-1 [])]
     (is (= #{(.getMessageId message-1) (.getMessageId message-2)}
            (->> batch-message .getMessageList (map #(.getMessageId %)) set))
         "Both messages for this sense-id should be retrieved, but not the other message.")))
@@ -108,9 +108,9 @@
 (deftest ^:integration test-receive-new-messages-while-connected
   (let [[sense-id-1 key-1] (first test-sense-id-key-pairs)
         batch-message-deferred (client/receive-messages-async
-                                (client/localhost) sense-id-1 key-1 [])
+                                (client/localhost-sub) sense-id-1 key-1 [])
         _ (Thread/sleep 1000)
-        message (client/send-message (client/localhost) sense-id-1)]
+        message (client/send-message (client/localhost-pub) sense-id-1)]
     (is (= (.getMessageId message)
            (-> batch-message-deferred deref (.getMessage 0) .getMessageId))
         "Message returned after being sent by while connected.")))
@@ -119,7 +119,7 @@
   (let [[sense-id-1 key-1] (first test-sense-id-key-pairs)
         send (fn [message-map]
                 @(http/post
-                  (str (client/localhost) "/send")
+                  (str (client/localhost-pub) "/send")
                   {:body (-> message-map (assoc :type (pb/message-type :stop-audio))
                               pb/message .toByteArray)
                    :headers {"X-Hello-Sense-Id" sense-id-1}}))
@@ -128,20 +128,20 @@
         msg-1a (send-msg {:sender-id "a", :order 1})
         msg-1b (send-msg {:sender-id "b", :order 1})
         msg-2b (send-msg {:sender-id "b", :order 2})
-        batch-message (client/receive-messages (client/localhost) sense-id-1 key-1 [])]
+        batch-message (client/receive-messages (client/localhost-sub) sense-id-1 key-1 [])]
     (is (= (map #(.getMessageId %) [msg-1a msg-1b msg-2a msg-2b])
            (map #(.getMessageId %) (.getMessageList batch-message)))
         "Relative ordering for each message is preserved first by :order, then id.")))
 
 (deftest ^:integration test-receive-only-unacked-messages
   (let [[sense-id-1 key-1] (first test-sense-id-key-pairs)
-        message-1 (client/send-message (client/localhost) sense-id-1)
-        batch-1 (client/receive-messages (client/localhost) sense-id-1 key-1 [])
-        batch-2 (client/receive-messages (client/localhost) sense-id-1 key-1 [])
+        message-1 (client/send-message (client/localhost-pub) sense-id-1)
+        batch-1 (client/receive-messages (client/localhost-sub) sense-id-1 key-1 [])
+        batch-2 (client/receive-messages (client/localhost-sub) sense-id-1 key-1 [])
         batch-3-deferred (client/receive-messages-async
-                          (client/localhost) sense-id-1 key-1
+                          (client/localhost-sub) sense-id-1 key-1
                           [(.getMessageId message-1)])
-        message-2 (client/send-message (client/localhost) sense-id-1)]
+        message-2 (client/send-message (client/localhost-pub) sense-id-1)]
     (is (= #{(.getMessageId message-1)}
            (->> batch-1 .getMessageList (map #(.getMessageId %)) set)
            (->> batch-2 .getMessageList (map #(.getMessageId %)) set))
@@ -152,14 +152,14 @@
 
 (deftest ^:integration test-get-status
   (let [[sense-id-1 key-1] (first test-sense-id-key-pairs)
-        message-1 (client/send-message (client/localhost) sense-id-1)
-        message-2 (client/send-message (client/localhost) sense-id-1)
-        message-3 (client/send-message (client/localhost) "nonsense")
+        message-1 (client/send-message (client/localhost-pub) sense-id-1)
+        message-2 (client/send-message (client/localhost-pub) sense-id-1)
+        message-3 (client/send-message (client/localhost-pub) "nonsense")
         id-1 (.getMessageId message-1)
         id-2 (.getMessageId message-2)
         id-3 (.getMessageId message-3)
-        get-state #(-> (client/get-status (client/localhost) %) .getState)
-        ack #(client/receive-messages (client/localhost) sense-id-1 key-1 %)]
+        get-state #(-> (client/get-status (client/localhost-pub) %) .getState)
+        ack #(client/receive-messages (client/localhost-sub) sense-id-1 key-1 %)]
     (is (= (pb/message-status-state :pending)
            (get-state id-1)
            (get-state id-2)
@@ -184,7 +184,20 @@
 (deftest ^:integration test-get-status-invalid-id
   (testing "id is invalid"
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"400"
-          (client/get-status (client/localhost) "not-valid"))))
+          (client/get-status (client/localhost-pub) "not-valid"))))
   (testing "id is valid but not found"
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"404"
-          (client/get-status (client/localhost) 1337)))))
+          (client/get-status (client/localhost-pub) 1337)))))
+
+(deftest ^:integration test-wrong-port
+  (testing "using the wrong port for the operation results in 404"
+    (let [message (client/send-message (client/localhost-pub) "sense1")]
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo #"404"
+            (client/get-status (client/localhost-sub) 1))
+          "Cannot call status endpoint from subscriber port."))
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"404"
+          (client/send-message (client/localhost-sub) "sense1"))
+        "Cannot call send endpoint from subscriber port")
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"404"
+          (client/receive-messages (client/localhost-pub) "sense1" (some val test-sense-id-key-pairs) []))
+        "Cannot call send endpoint from subscriber port")))
