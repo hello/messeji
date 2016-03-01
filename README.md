@@ -55,6 +55,7 @@ protoc -I messeji/  --java_out=/path/to/messeji/src/main/java/ messeji/*
 
 ## Client
 First, some setup: Require the client and define your sense and its key (to receive messages).
+**Note: Insert actual sense IDs and keys found in your `key_store` table or this won't work and you'll cry!**
 ```clojure
 (require '[com.hello.messeji.client :as client])
 
