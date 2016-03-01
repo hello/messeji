@@ -155,16 +155,18 @@
     {:status 200, :body message-status}
     {:status 404, :body ""}))
 
-(defn mk-routes
+(defn- mk-routes
+  "Create a compojure `routes` handler with default common health check and 404 routes."
   [& routes]
   (apply
     compojure/routes
     (concat
       routes
-      [(GET "/healthz" _ {:status 200 :body "ok"})
-       (route/not-found "")])))
+      [(GET "/healthz" _ {:status 200 :body "ok"}) ; ELB health check
+       (route/not-found "")]))) ; 404
 
- (defn wrap-routes
+ (defn- wrap-routes
+   "Wrap the given routes handler in common middleware."
    [routes]
    (-> routes
        middleware/wrap-log-request
@@ -175,6 +177,7 @@
        middleware/wrap-500))
 
 (defn receive-handler
+  "Request handler for the subscriber (receive) endpoints."
   [connections key-store message-store timeout]
   (let [routes
         (mk-routes
@@ -183,6 +186,7 @@
     (wrap-routes routes)))
 
 (defn publish-handler
+  "Request handler for the publish (send) endpoints."
   [message-store pubsub-conn-opts]
   (let [routes
         (mk-routes
@@ -193,12 +197,15 @@
     (wrap-routes routes)))
 
 (defn pubsub-handler
+  "Returns a function that takes a sense-id and message. This is invoked when a
+  new subscribed message arrives."
   [connections-atom message-store]
   (fn [sense-id message]
     ;; TODO see if message already delivered?
     ;; TODO do not want to do this in subscribing thread...
     (send-messages message-store (@connections-atom sense-id) [message])))
 
+;; Wrapper for service state.
 (defrecord Service
   [config connections pub-server sub-server listener data-stores]
 
