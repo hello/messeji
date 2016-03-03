@@ -98,7 +98,7 @@
 (defn- ack-and-receive
   [connections message-store timeout receive-message-request key]
   (let [message-ids (acked-message-ids receive-message-request)]
-    (metrics/mark "acked-messages" (count message-ids))
+    (metrics/mark "server.acked-messages" (count message-ids))
     (db/acknowledge message-store message-ids)
     (receive-messages connections message-store timeout (.getSenseId receive-message-request) key)))
 
@@ -159,9 +159,9 @@
     {:status 404, :body ""}))
 
 ;; Define timed versions of all the handlers.
-(metrics/deftimed handle-send-timed handle-send)
-(metrics/deftimed handle-receive-timed handle-receive)
-(metrics/deftimed handle-status-timed handle-status)
+(metrics/deftimed handle-send-timed server handle-send)
+(metrics/deftimed handle-receive-timed server handle-receive)
+(metrics/deftimed handle-status-timed server handle-status)
 
 (defn handler
   [connections key-store message-store timeout pubsub-conn-opts]
@@ -213,19 +213,11 @@
                   (.put "LOG_LEVEL" (:log-level properties)))]
       (PropertyConfigurator/configure prop))))
 
-;; Aliases for `do` to make `if` statements with side effects more readable.
-(defmacro then
-  [& exprs]
-  `(do ~@exprs))
-
-(defmacro else
-  [& exprs]
-  `(do ~@exprs))
-
 (defn start-server
   "Performs setup, starts server, and returns a java.io.Closeable record."
   [config-map]
   (configure-logging (:logging config-map))
+  (log/info "Starting server")
   (let [connections (atom {})
         credentials-provider (DefaultAWSCredentialsProviderChain.)
         client-config (.. (ClientConfiguration.)
@@ -246,13 +238,12 @@
         listener (pubsub/subscribe redis-spec (pubsub-handler connections message-store))
         graphite-config (:graphite config-map)
         reporter (if (:enabled? graphite-config)
-                  (then
+                  (do ;; then
                     (log/info "Metrics enabled.")
                     (metrics/start-graphite! graphite-config))
-                  (else
+                  (do ;; else
                     (log/warn "Metrics not enabled")
                     nil))
-        ; reporter (when (:enabled? graphite-config) (metrics/start-graphite! graphite-config))
         server (http/start-server
                  (handler connections key-store message-store timeout {:spec redis-spec})
                  {:port (get-in config-map [:http :port])})]

@@ -51,7 +51,7 @@
       (handler request)
       (catch Exception e
         (log/error e)
-        (metrics/mark "errors")
+        (metrics/mark "middleware.errors")
         {:status 500
          :body ""}))))
 
@@ -66,7 +66,7 @@
   "Mark a request meter metric."
   [handler]
   (fn [request]
-    (metrics/mark "requests")
+    (metrics/mark "middleware.requests")
     (handler request)))
 
 (defn throw-invalid-request
