@@ -34,11 +34,6 @@
     (.start reporter period TimeUnit/SECONDS)
     reporter))
 
-; (defmacro name
-;   "Returns a name for the metric of the form \"<curr-namespace>.<metric-name>\""
-;   [metric-name]
-;   `(str (ns-name *ns*) "." '~metric-name))
-
 (defn meter
   "Get a Meter called `meter-name`."
   [meter-name]
@@ -65,8 +60,9 @@
 
 (defmacro deftimed
   "Defines a new function named `symbol` that times the execution of `function`."
-  [symbol function]
-  `(defn ~symbol
-    [& args#]
-    (time (name '~function)
-      (apply ~function args#))))
+  [symbol prefix function]
+  (let [metric-name (str prefix "." function)]
+    `(defn ~symbol
+      [& args#]
+      (time ~metric-name
+        (apply ~function args#)))))

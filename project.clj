@@ -14,6 +14,10 @@
                                                     javax.jms/jms
                                                     com.sun.jmdk/jmxtools
                                                     com.sun.jmx/jmxri]]
+                 ;; sl4j dependencies are to bridge log4j and sl4j, which is
+                 ;; used by dropwizard metrics *sigh*
+                 [org.slf4j/slf4j-api "1.7.7"]
+                 [org.slf4j/slf4j-log4j12 "1.7.7"]
                  [prismatic/schema "1.0.4"]
                  [com.taoensso/carmine "2.12.2"]]
   :plugins [[s3-wagon-private "1.2.0"]
