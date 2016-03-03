@@ -9,6 +9,7 @@
     [com.hello.messeji
       [config :as messeji-config]
       [db :as db]
+      [metrics :as metrics]
       [middleware :as middleware]
       [protobuf :as pb]
       [pubsub :as pubsub]]
@@ -96,8 +97,10 @@
 
 (defn- ack-and-receive
   [connections message-store timeout receive-message-request key]
-  (db/acknowledge message-store (acked-message-ids receive-message-request))
-  (receive-messages connections message-store timeout (.getSenseId receive-message-request) key))
+  (let [message-ids (acked-message-ids receive-message-request)]
+    (metrics/mark "acked-messages" (count message-ids))
+    (db/acknowledge message-store message-ids)
+    (receive-messages connections message-store timeout (.getSenseId receive-message-request) key)))
 
 (defn- parse-receive-request
   [request-bytes]
@@ -155,19 +158,25 @@
     {:status 200, :body message-status}
     {:status 404, :body ""}))
 
+;; Define timed versions of all the handlers.
+(metrics/deftimed handle-send-timed handle-send)
+(metrics/deftimed handle-receive-timed handle-receive)
+(metrics/deftimed handle-status-timed handle-status)
+
 (defn handler
   [connections key-store message-store timeout pubsub-conn-opts]
   (let [routes
         (compojure/routes
           (GET "/healthz" _ {:status 200 :body "ok"})
           (POST "/receive" request
-            (handle-receive connections key-store message-store timeout request))
+            (handle-receive-timed connections key-store message-store timeout request))
           (POST "/send" request
-            (handle-send message-store request pubsub-conn-opts))
+            (handle-send-timed message-store request pubsub-conn-opts))
           (GET "/status/:message-id" [message-id]
-            (handle-status message-store message-id))
+            (handle-status-timed message-store message-id))
           (route/not-found ""))]
     (-> routes
+       middleware/wrap-mark-request-meter
        middleware/wrap-log-request
        middleware/wrap-protobuf-request
        middleware/wrap-protobuf-response
@@ -183,7 +192,7 @@
     (send-messages message-store (@connections-atom sense-id) [message])))
 
 (defrecord Service
-  [config connections server listener data-stores]
+  [config connections server listener metric-reporter data-stores]
 
   java.io.Closeable
   (close [this]
@@ -192,6 +201,8 @@
     (doseq [[_ store] data-stores]
       (.close store))
     (.close listener)
+    (when metric-reporter
+      (.close metric-reporter))
     (reset! connections nil)))
 
 (defn- configure-logging
@@ -201,6 +212,15 @@
                   (.load reader)
                   (.put "LOG_LEVEL" (:log-level properties)))]
       (PropertyConfigurator/configure prop))))
+
+;; Aliases for `do` to make `if` statements with side effects more readable.
+(defmacro then
+  [& exprs]
+  `(do ~@exprs))
+
+(defmacro else
+  [& exprs]
+  `(do ~@exprs))
 
 (defn start-server
   "Performs setup, starts server, and returns a java.io.Closeable record."
@@ -224,6 +244,15 @@
                         (:max-message-age-millis config-map)
                         (get-in config-map [:redis :delete-after-seconds]))
         listener (pubsub/subscribe redis-spec (pubsub-handler connections message-store))
+        graphite-config (:graphite config-map)
+        reporter (if (:enabled? graphite-config)
+                  (then
+                    (log/info "Metrics enabled.")
+                    (metrics/start-graphite! graphite-config))
+                  (else
+                    (log/warn "Metrics not enabled")
+                    nil))
+        ; reporter (when (:enabled? graphite-config) (metrics/start-graphite! graphite-config))
         server (http/start-server
                  (handler connections key-store message-store timeout {:spec redis-spec})
                  {:port (get-in config-map [:http :port])})]
@@ -232,6 +261,7 @@
       connections
       server
       listener
+      reporter
       {:key-store key-store
        :message-store message-store})))
 

@@ -1,7 +1,8 @@
 (ns com.hello.messeji.middleware
   (:require
     [byte-streams :as bs]
-    [clojure.tools.logging :as log])
+    [clojure.tools.logging :as log]
+    [com.hello.messeji.metrics :as metrics])
   (:import
     [com.google.protobuf
       InvalidProtocolBufferException
@@ -49,7 +50,8 @@
     (try
       (handler request)
       (catch Exception e
-        (prn e)
+        (log/error e)
+        (metrics/mark "errors")
         {:status 500
          :body ""}))))
 
@@ -60,6 +62,13 @@
     (log/debug request)
     (handler request)))
 
+(defn wrap-mark-request-meter
+  "Mark a request meter metric."
+  [handler]
+  (fn [request]
+    (metrics/mark "requests")
+    (handler request)))
+
 (defn throw-invalid-request
   "Throw an invalid request exception that will be caught by `wrap-invalid-request`
   and rethrown as a 400 error."
@@ -67,4 +76,5 @@
     (log/info "Invalid request: " reason)
     (throw-invalid-request))
   ([]
+    (metrics/mark "invalid-request")
     (throw (ex-info "Invalid request." {::type ::invalid-request}))))

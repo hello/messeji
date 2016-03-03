@@ -8,6 +8,8 @@
                  [com.amazonaws/aws-java-sdk-dynamodb "1.10.49"]
                  [com.google.guava/guava "18.0"]
                  [com.google.protobuf/protobuf-java "2.6.1"]
+                 [io.dropwizard.metrics/metrics-core "3.1.0"]
+                 [io.dropwizard.metrics/metrics-graphite "3.1.0"]
                  [log4j/log4j "1.2.17" :exclusions [javax.mail/mail
                                                     javax.jms/jms
                                                     com.sun.jmdk/jmxtools

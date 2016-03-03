@@ -8,4 +8,10 @@
                 :port 6379
                 :db 0}
          :delete-after-seconds 60}
+ :graphite {:host "carbon.hostedgraphite.com"
+            :api-key "7509c0ff-4db5-4cae-91ee-6e78ff13b336"
+            :port 2003
+            :env "staging"
+            :period 30
+            :enabled? true}
  :max-message-age-millis 10000}

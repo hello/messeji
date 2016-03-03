@@ -14,7 +14,13 @@
              :properties {:log-level s/Str}}
    :redis {:spec {s/Keyword s/Any} ;; See documentation for carmine/wcar spec
            :delete-after-seconds s/Int}
-   :max-message-age-millis s/Int})
+   :max-message-age-millis s/Int
+   :graphite {:host s/Str
+              :api-key s/Str
+              :port s/Int
+              :env s/Str
+              :period s/Int   ; Reporting interval in seconds
+              :enabled? s/Bool}})
 
 (defn- deep-merge
   "Deeply merges maps so that nested maps are combined rather than replaced.
