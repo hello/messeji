@@ -52,14 +52,31 @@
     (.mark (meter meter-name) count)))
 
 (defmacro time
-  "Gets Timer named `timer-name` and times the execution of `body`."
+  "Gets Timer named `timer-name` and times the execution of `body`.
+
+  (time \"my.timer\" (do-my-stuff))
+
+  expands to:
+
+  (let [timer (timer \"my.timer\")]
+    (with-open [context (.time timer)]
+      (do-my-stuff)))"
   [timer-name & body]
   `(let [timer# (timer ~timer-name)]
     (with-open [context# (.time timer#)]
       ~@body)))
 
 (defmacro deftimed
-  "Defines a new function named `symbol` that times the execution of `function`."
+  "Defines a new function named `symbol` that times the execution of `function`.
+
+  (deftimed new-timed-fn my.prefix my-fn)
+
+  expands to:
+
+  (defn new-timed-fn
+    [& args]
+    (time \"my.prefix.my-fn\"
+      (apply my-fn args)))"
   [symbol prefix function]
   (let [metric-name (str prefix "." function)]
     `(defn ~symbol
