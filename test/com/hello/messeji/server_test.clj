@@ -60,10 +60,6 @@
                      pb/receive-message-request
                      (client/sign-protobuf aes-key))
           body (mk-body sense-id)
-          body (-> {:sense-id sense-id
-                    :message-read-ids []}
-                  pb/receive-message-request
-                  (client/sign-protobuf aes-key))
           throws-400? #(is
                         (thrown-with-msg?
                           clojure.lang.ExceptionInfo
@@ -93,7 +89,19 @@
                   [])
                 timeout
                 ::timed-out)]
-      (is (= @resp ::timed-out)))))
+      (is (= @resp ::timed-out))))
+
+  (testing "correct content type"
+    (let [url (str (client/localhost-sub) "/receive")
+          [sense-id aes-key] (first test-sense-id-key-pairs)
+          body (-> {:sense-id sense-id
+                    :message-read-ids []}
+                 pb/receive-message-request
+                 (client/sign-protobuf aes-key))
+          response (http/post url {:body body
+                                   :headers {"X-Hello-Sense-Id" sense-id}})]
+      (client/send-message (client/localhost-pub) sense-id)
+      (is (get-in @response [:headers :content-type]) "application/octet-stream"))))
 
 (deftest ^:integration test-receive-multiple-messages
   (let [[sense-id-1 key-1] (first test-sense-id-key-pairs)
