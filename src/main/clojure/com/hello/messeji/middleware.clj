@@ -85,5 +85,5 @@
     (log/info "Invalid request: " reason)
     (throw-invalid-request))
   ([]
-    (metrics/mark "invalid-request")
+    (metrics/mark "middleware.invalid-request")
     (throw (ex-info "Invalid request." {::type ::invalid-request}))))
