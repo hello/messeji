@@ -17,10 +17,9 @@
       [redis :as redis]
       [key-store-ddb :as ksddb]]
     [compojure.core :as compojure :refer [GET POST]]
+    [compojure.response :refer [Renderable]]
     [compojure.route :as route]
-    [manifold.deferred :as deferred]
-    [ring.middleware.params :as params]
-    [ring.middleware.content-type :refer [wrap-content-type]])
+    [manifold.deferred :as deferred])
   (:import
     [com.amazonaws ClientConfiguration]
     [com.amazonaws.auth DefaultAWSCredentialsProviderChain]
@@ -32,6 +31,15 @@
       Messeji$Message$Type
       Messeji$BatchMessage]
     [org.apache.log4j PropertyConfigurator]))
+
+;; Compojure will normally dereference deferreds and return the realized value.
+;; This unfortunately blocks the thread. Since aleph can accept the un-realized
+;; deferred, we extend compojure's Renderable protocol to pass the deferred
+;; through unchanged so that the thread won't be blocked.
+;; See https://github.com/ztellman/aleph/issues/216
+(extend-protocol Renderable
+  manifold.deferred.Deferred
+  (render [d _] d))
 
 (defn- batch-message-response
   [^bytes key messages]
@@ -181,7 +189,7 @@
        middleware/wrap-protobuf-request
        middleware/wrap-protobuf-response
        middleware/wrap-invalid-request
-       wrap-content-type
+       middleware/wrap-content-type
        middleware/wrap-500)))
 
 (defn pubsub-handler
