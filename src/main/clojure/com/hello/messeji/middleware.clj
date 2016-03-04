@@ -1,7 +1,9 @@
 (ns com.hello.messeji.middleware
   (:require
     [byte-streams :as bs]
-    [clojure.tools.logging :as log])
+    [clojure.tools.logging :as log]
+    [manifold.deferred :refer [let-flow]]
+    [ring.middleware.content-type :refer [content-type-response]])
   (:import
     [com.google.protobuf
       InvalidProtocolBufferException
@@ -59,6 +61,13 @@
   (fn [request]
     (log/debug request)
     (handler request)))
+
+(defn wrap-content-type
+  "`Deferred`-friendly version of ring's wrap-content-type."
+  [handler]
+  (fn [request]
+    (let-flow [response (handler request)]
+      (content-type-response response request))))
 
 (defn throw-invalid-request
   "Throw an invalid request exception that will be caught by `wrap-invalid-request`
