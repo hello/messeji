@@ -2,6 +2,7 @@
   (:require
     [byte-streams :as bs]
     [clojure.tools.logging :as log]
+    [com.hello.messeji.metrics :as metrics]
     [manifold.deferred :refer [let-flow]]
     [ring.middleware.content-type :refer [content-type-response]])
   (:import
@@ -51,7 +52,8 @@
     (try
       (handler request)
       (catch Exception e
-        (prn e)
+        (log/error e)
+        (metrics/mark "middleware.errors")
         {:status 500
          :body ""}))))
 
@@ -60,6 +62,13 @@
   [handler]
   (fn [request]
     (log/debug request)
+    (handler request)))
+
+(defn wrap-mark-request-meter
+  "Mark a request meter metric."
+  [handler]
+  (fn [request]
+    (metrics/mark "middleware.requests")
     (handler request)))
 
 (defn wrap-content-type
@@ -76,4 +85,5 @@
     (log/info "Invalid request: " reason)
     (throw-invalid-request))
   ([]
+    (metrics/mark "middleware.invalid-request")
     (throw (ex-info "Invalid request." {::type ::invalid-request}))))

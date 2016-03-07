@@ -3,6 +3,12 @@
  :http {:sub-port 10000
         :pub-port 8000
         :receive-timeout 60000}
+ :graphite {:host "carbon.hostedgraphite.com"
+            :api-key "7509c0ff-4db5-4cae-91ee-6e78ff13b336"
+            :port 2003
+            :env "prod"
+            :period 30
+            :enabled? true}
  :logging {:property-file-name "log4j.properties"
            :properties {:log-level "INFO"}}
  :redis {:spec {:host "messages-prod.xoe7je.0001.use1.cache.amazonaws.com"

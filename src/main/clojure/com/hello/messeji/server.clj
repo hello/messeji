@@ -9,6 +9,7 @@
     [com.hello.messeji
       [config :as messeji-config]
       [db :as db]
+      [metrics :as metrics]
       [middleware :as middleware]
       [protobuf :as pb]
       [pubsub :as pubsub]]
@@ -104,8 +105,10 @@
 
 (defn- ack-and-receive
   [connections message-store timeout receive-message-request key]
-  (db/acknowledge message-store (acked-message-ids receive-message-request))
-  (receive-messages connections message-store timeout (.getSenseId receive-message-request) key))
+  (let [message-ids (acked-message-ids receive-message-request)]
+    (metrics/mark "server.acked-messages" (count message-ids))
+    (db/acknowledge message-store message-ids)
+    (receive-messages connections message-store timeout (.getSenseId receive-message-request) key)))
 
 (defn- parse-receive-request
   [request-bytes]
@@ -177,6 +180,7 @@
    "Wrap the given routes handler in common middleware."
    [routes]
    (-> routes
+       middleware/wrap-mark-request-meter
        middleware/wrap-log-request
        middleware/wrap-protobuf-request
        middleware/wrap-protobuf-response
@@ -184,13 +188,18 @@
        middleware/wrap-content-type
        middleware/wrap-500))
 
+ ;; Define timed versions of all the handlers.
+ (metrics/deftimed handle-send-timed server handle-send)
+ (metrics/deftimed handle-receive-timed server handle-receive)
+ (metrics/deftimed handle-status-timed server handle-status)
+
 (defn receive-handler
   "Request handler for the subscriber (receive) endpoints."
   [connections key-store message-store timeout]
   (let [routes
         (mk-routes
           (POST "/receive" request
-            (handle-receive connections key-store message-store timeout request)))]
+            (handle-receive-timed connections key-store message-store timeout request)))]
     (wrap-routes routes)))
 
 (defn publish-handler
@@ -199,9 +208,9 @@
   (let [routes
         (mk-routes
           (POST "/send" request
-            (handle-send message-store request pubsub-conn-opts))
+            (handle-send-timed message-store request pubsub-conn-opts))
           (GET "/status/:message-id" [message-id]
-            (handle-status message-store message-id)))]
+            (handle-status-timed message-store message-id)))]
     (wrap-routes routes)))
 
 (defn pubsub-handler
@@ -215,8 +224,7 @@
 
 ;; Wrapper for service state.
 (defrecord Service
-  [config connections pub-server sub-server listener data-stores]
-
+  [config connections pub-server sub-server listener metric-reporter data-stores]
   java.io.Closeable
   (close [this]
     ;; Calls NioEventLoopGroup.shutdownGracefully()
@@ -225,6 +233,8 @@
     (doseq [[_ store] data-stores]
       (.close store))
     (.close listener)
+    (when metric-reporter
+      (.close metric-reporter))
     (reset! connections nil)))
 
 (defn- configure-logging
@@ -239,6 +249,7 @@
   "Performs setup, starts server, and returns a java.io.Closeable record."
   [config-map]
   (configure-logging (:logging config-map))
+  (log/info "Starting server")
   (let [connections (atom {})
         credentials-provider (DefaultAWSCredentialsProviderChain.)
         client-config (.. (ClientConfiguration.)
@@ -262,13 +273,22 @@
                     {:port (get-in config-map [:http :pub-port])})
         sub-server (http/start-server
                     (receive-handler connections key-store message-store timeout)
-                    {:port (get-in config-map [:http :sub-port])})]
+                    {:port (get-in config-map [:http :sub-port])})
+        graphite-config (:graphite config-map)
+        reporter (if (:enabled? graphite-config)
+                  (do ;; then
+                    (log/info "Metrics enabled.")
+                    (metrics/start-graphite! graphite-config))
+                  (do ;; else
+                    (log/warn "Metrics not enabled")
+                    nil))]
     (->Service
       config-map
       connections
       pub-server
       sub-server
       listener
+      reporter
       {:key-store key-store
        :message-store message-store})))
 

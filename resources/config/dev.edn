@@ -3,6 +3,12 @@
  :http {:sub-port 10000
         :pub-port 8000
         :receive-timeout 10000}
+ :graphite {:host "carbon.hostedgraphite.com"
+            :api-key "7509c0ff-4db5-4cae-91ee-6e78ff13b336"
+            :port 2003
+            :env "dev"
+            :period 30
+            :enabled? false}
  :logging {:property-file-name "log4j.properties"
            :properties {:log-level "DEBUG"}}
  :redis {:spec {:host "127.0.0.1"

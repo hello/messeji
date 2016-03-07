@@ -8,10 +8,16 @@
                  [com.amazonaws/aws-java-sdk-dynamodb "1.10.49"]
                  [com.google.guava/guava "18.0"]
                  [com.google.protobuf/protobuf-java "2.6.1"]
+                 [io.dropwizard.metrics/metrics-core "3.1.0"]
+                 [io.dropwizard.metrics/metrics-graphite "3.1.0"]
                  [log4j/log4j "1.2.17" :exclusions [javax.mail/mail
                                                     javax.jms/jms
                                                     com.sun.jmdk/jmxtools
                                                     com.sun.jmx/jmxri]]
+                 ;; sl4j dependencies are to bridge log4j and sl4j, which is
+                 ;; used by dropwizard metrics *sigh*
+                 [org.slf4j/slf4j-api "1.7.7"]
+                 [org.slf4j/slf4j-log4j12 "1.7.7"]
                  [prismatic/schema "1.0.4"]
                  [com.taoensso/carmine "2.12.2"]]
   :plugins [[s3-wagon-private "1.2.0"]
