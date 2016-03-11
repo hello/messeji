@@ -1,6 +1,7 @@
 {:key-store {:table "key_store"
              :endpoint "http://localhost:7777"}
- :http {:port 10000
+ :http {:sub-port 10000
+        :pub-port 8000
         :receive-timeout 10000}
  :graphite {:host "carbon.hostedgraphite.com"
             :api-key "7509c0ff-4db5-4cae-91ee-6e78ff13b336"

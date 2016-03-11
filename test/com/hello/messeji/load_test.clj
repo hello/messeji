@@ -59,26 +59,28 @@
   sends a bunch of messages to randomly chosen connected senses. The latencies are
   measured for these messages, from the time they were sent to the time they
   were received by the 'sense'."
-  [host filename & [limit]]
-  (let [sense-id-key-pairs (set (parse-file filename))
+  [host send-port receive-port filename & [limit]]
+  (let [send-host (str host ":" send-port)
+        receive-host (str host ":" receive-port)
+        sense-id-key-pairs (set (parse-file filename))
         sense-id-key-pairs (if limit (take limit sense-id-key-pairs) sense-id-key-pairs)
         sense-ids (map first sense-id-key-pairs)
         message-latency-stream (s/stream)
         pool (http/connection-pool {:connections-per-host (count sense-ids)})]
     ;; Connect senses
-    (with-open [senses (connect-senses pool host sense-id-key-pairs (callback message-latency-stream))]
+    (with-open [senses (connect-senses pool receive-host sense-id-key-pairs (callback message-latency-stream))]
       ;; Send a bunch of messages
       (dorun
         (pmap
           (fn [_]
-            (client/send-message host (rand-nth sense-ids)))
+            (client/send-message send-host (rand-nth sense-ids)))
           (range (* (count sense-ids) 5)))) ; Send 5 messages per sense at random
       ;; Print out the latency percentiles
       (process-stream message-latency-stream))))
 
 (defn -main
-  [host filename]
-  (run-test host filename))
+  [host send-port receive-port filename]
+  (run-test host send-port receive-port filename))
 
 ;; TODO currently this only returns the first page from the key store
 (defn scan-key-store

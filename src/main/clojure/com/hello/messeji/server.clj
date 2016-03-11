@@ -166,46 +166,70 @@
     {:status 200, :body message-status}
     {:status 404, :body ""}))
 
-;; Define timed versions of all the handlers.
-(metrics/deftimed handle-send-timed server handle-send)
-(metrics/deftimed handle-receive-timed server handle-receive)
-(metrics/deftimed handle-status-timed server handle-status)
+(defn- mk-routes
+  "Create a compojure `routes` handler with default common health check and 404 routes."
+  [& routes]
+  (apply
+    compojure/routes
+    (concat
+      routes
+      [(GET "/healthz" _ {:status 200 :body "ok"}) ; ELB health check
+       (route/not-found "")]))) ; 404
 
-(defn handler
-  [connections key-store message-store timeout pubsub-conn-opts]
-  (let [routes
-        (compojure/routes
-          (GET "/healthz" _ {:status 200 :body "ok"})
-          (POST "/receive" request
-            (handle-receive-timed connections key-store message-store timeout request))
-          (POST "/send" request
-            (handle-send-timed message-store request pubsub-conn-opts))
-          (GET "/status/:message-id" [message-id]
-            (handle-status-timed message-store message-id))
-          (route/not-found ""))]
-    (-> routes
+ (defn- wrap-routes
+   "Wrap the given routes handler in common middleware."
+   [routes]
+   (-> routes
        middleware/wrap-mark-request-meter
        middleware/wrap-log-request
        middleware/wrap-protobuf-request
        middleware/wrap-protobuf-response
        middleware/wrap-invalid-request
        middleware/wrap-content-type
-       middleware/wrap-500)))
+       middleware/wrap-500))
+
+ ;; Define timed versions of all the handlers.
+ (metrics/deftimed handle-send-timed server handle-send)
+ (metrics/deftimed handle-receive-timed server handle-receive)
+ (metrics/deftimed handle-status-timed server handle-status)
+
+(defn receive-handler
+  "Request handler for the subscriber (receive) endpoints."
+  [connections key-store message-store timeout]
+  (let [routes
+        (mk-routes
+          (POST "/receive" request
+            (handle-receive-timed connections key-store message-store timeout request)))]
+    (wrap-routes routes)))
+
+(defn publish-handler
+  "Request handler for the publish (send) endpoints."
+  [message-store pubsub-conn-opts]
+  (let [routes
+        (mk-routes
+          (POST "/send" request
+            (handle-send-timed message-store request pubsub-conn-opts))
+          (GET "/status/:message-id" [message-id]
+            (handle-status-timed message-store message-id)))]
+    (wrap-routes routes)))
 
 (defn pubsub-handler
+  "Returns a function that takes a sense-id and message. This is invoked when a
+  new subscribed message arrives."
   [connections-atom message-store]
   (fn [sense-id message]
     ;; TODO see if message already delivered?
     ;; TODO do not want to do this in subscribing thread...
     (send-messages message-store (@connections-atom sense-id) [message])))
 
+;; Wrapper for service state.
 (defrecord Service
-  [config connections server listener metric-reporter data-stores]
-
+  [config connections pub-server sub-server listener metric-reporter data-stores]
   java.io.Closeable
   (close [this]
     ;; Calls NioEventLoopGroup.shutdownGracefully()
-    (.close server)
+    (.close pub-server)
+    (.close sub-server)
     (doseq [[_ store] data-stores]
       (.close store))
     (.close listener)
@@ -244,6 +268,12 @@
                         (:max-message-age-millis config-map)
                         (get-in config-map [:redis :delete-after-seconds]))
         listener (pubsub/subscribe redis-spec (pubsub-handler connections message-store))
+        pub-server (http/start-server
+                    (publish-handler message-store {:spec redis-spec})
+                    {:port (get-in config-map [:http :pub-port])})
+        sub-server (http/start-server
+                    (receive-handler connections key-store message-store timeout)
+                    {:port (get-in config-map [:http :sub-port])})
         graphite-config (:graphite config-map)
         reporter (if (:enabled? graphite-config)
                   (do ;; then
@@ -251,14 +281,12 @@
                     (metrics/start-graphite! graphite-config))
                   (do ;; else
                     (log/warn "Metrics not enabled")
-                    nil))
-        server (http/start-server
-                 (handler connections key-store message-store timeout {:spec redis-spec})
-                 {:port (get-in config-map [:http :port])})]
+                    nil))]
     (->Service
       config-map
       connections
-      server
+      pub-server
+      sub-server
       listener
       reporter
       {:key-store key-store
