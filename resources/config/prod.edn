@@ -11,7 +11,7 @@
             :enabled? true}
  :logging {:property-file-name "log4j.properties"
            :properties {:log-level "INFO"}}
- :redis {:spec {:host "messages-prod.xoe7je.0001.use1.cache.amazonaws.com"
+ :redis {:spec {:host "messages-prod-ha-001.xoe7je.0001.use1.cache.amazonaws.com"
                 :port 6379
                 :db 0}
          :delete-after-seconds 60}
