@@ -16,6 +16,7 @@
   This is to keep queries for messages per sense-id fast.
   "
   (:require
+    [clojure.tools.logging :as log]
     [com.hello.messeji.db :as db]
     [com.hello.messeji.protobuf :as pb]
     [taoensso.carmine :as redis])
@@ -142,6 +143,8 @@
                             (r-timestamp)
                             (r-latest-message-id))
           message-with-id (.. message toBuilder (setMessageId id) build)]
+      (log/infof "fn=create-message sense-id=%s message-id=%s timestamp=%s"
+        sense-id id timestamp)
       (redis/wcar conn-opts
         (redis/multi) ; Perform in a transaction
         (r-add-message message-with-id timestamp)

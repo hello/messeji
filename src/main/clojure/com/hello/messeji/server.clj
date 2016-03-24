@@ -61,18 +61,21 @@
     (map #(.getMessageId ^Messeji$Message %) messages)))
 
 (defn- deferred-connection
-  [deferred-response key]
+  [deferred-response sense-id key]
   {:deferred-response deferred-response
+   :sense-id sense-id
    :key key})
 
 (defn- receive-messages
   [connections-atom message-store timeout sense-id key]
   (if-let [unacked-messages (seq (db/unacked-messages message-store sense-id))]
     (do
+      (log/infof "fn=receive-messages sense-id=%s unacked-messages-count=%s"
+        sense-id (count unacked-messages))
       (mark-sent message-store unacked-messages)
       (batch-message-response key unacked-messages))
     (let [deferred-response (deferred/deferred)]
-      (swap! connections-atom assoc sense-id (deferred-connection deferred-response key))
+      (swap! connections-atom assoc sense-id (deferred-connection deferred-response sense-id key))
       (deferred/timeout!
         deferred-response
         timeout
@@ -133,12 +136,14 @@
       {:status 401, :body ""})))
 
 (defn- send-messages
-  [message-store {:keys [deferred-response key]} messages]
+  [message-store {:keys [deferred-response sense-id key]} messages]
   (when (and deferred-response
              (not (deferred/realized? deferred-response)))
     (when-let [delivery (deferred/success!
                           deferred-response
                           (batch-message-response key messages))]
+      (log/infof "fn=send-messages sense-id=%s delivered-messages-count=%s"
+        sense-id (count messages))
       ;; If delivery is true, then we haven't previously delivered anything
       ;; and the connection hasn't yet been timed out.
       (mark-sent message-store messages)
@@ -146,9 +151,14 @@
 
 (defn handle-send
   [message-store request pubsub-conn-opts]
+  (log/infof "endpoint=send sense-id=%s" (request-sense-id request))
   (let [sense-id (request-sense-id request)
         message (pb/message (:body request))
+        _ (log/infof "endpoint=send sense-id=%s message-type=%s order=%s"
+            sense-id (.getType message) (.getOrder message))
         message-with-id (db/create-message message-store sense-id message)]
+    (log/infof "endpoint=send sense-id=%s message-id=%s"
+      sense-id (.getMessageId message-with-id))
     (pubsub/publish pubsub-conn-opts sense-id message-with-id)
     {:status 201
      :body message-with-id}))
