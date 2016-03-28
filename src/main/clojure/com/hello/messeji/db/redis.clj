@@ -107,7 +107,7 @@
 (defn- message-parser
   [ks]
   (fn [vs]
-    (if (every? nil? vs) ; Keys weren't found in Redis.
+    (if (some nil? vs) ; Some keys weren't found in Redis.
       nil
       (into {}
         (map
@@ -132,6 +132,14 @@
 (defn- into-map
   [ks vs]
   (into {} (map vector ks vs)))
+
+(defn- update-messages
+  "Updates the given key and value for the given messages. Expires all messages
+  after delete-after-seconds."
+  [conn-opts delete-after-seconds message-ids k v]
+  (redis/wcar conn-opts
+    (mapv (partial r-message-set k v) message-ids)
+    (mapv #(redis/expire (message-key %) delete-after-seconds) message-ids)))
 
 (defrecord RedisMessageStore
   [conn-opts max-age-millis delete-after-seconds]
@@ -188,11 +196,11 @@
 
   (mark-sent
     [_ message-ids]
-    (redis/wcar conn-opts (mapv (partial r-message-set :sent? true) message-ids)))
+    (update-messages conn-opts delete-after-seconds message-ids :sent? true))
 
   (acknowledge
     [_ message-ids]
-    (redis/wcar conn-opts (mapv (partial r-message-set :acknowledged? true) message-ids)))
+    (update-messages conn-opts delete-after-seconds message-ids :acknowledged? true))
 
   java.io.Closeable
   (close [_] nil))

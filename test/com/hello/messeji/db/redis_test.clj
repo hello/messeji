@@ -15,8 +15,14 @@
   `(with-redefs [redis/redis-time->milliseconds (constantly ~t)]
       ~@body))
 
+(defn tear-down
+  [config]
+  (car/wcar {:spec (get-in config [:redis :spec])}
+    (car/flushdb)))
+
 (defn- get-message-store
   [config-map]
+  (tear-down config-map)
   (redis/mk-message-store
     {:spec (get-in config-map [:redis :spec])}
     (:max-message-age-millis config-map)
@@ -27,16 +33,16 @@
   (let [dev-config-file (clojure.java.io/resource "config/dev.edn")]
     (-> dev-config-file
       conf/read
-      (update-in [:redis :spec :db] inc)
+      (update-in [:redis :spec :db] inc)  ; Don't use the normal dev DB.
       (assoc :max-message-age-millis 10000))))
 
 (defmacro with-redis
   [sym & body]
   `(let [config# (get-config)
          ~sym (get-message-store config#)]
-      ~@body
-      (car/wcar {:spec (get-in config# [:redis :spec])}
-        (car/flushdb))))
+      (try ~@body
+        (finally
+          (tear-down config#)))))
 
 (deftest ^:integration test-create-message
   (with-redis message-store
@@ -146,3 +152,23 @@
             (is (equal-state? (get-status 3000 message-id) :received)))
           (testing "Received takes precedence over all."
             (is (equal-state? (get-status 13000 message-id) :received))))))))
+
+(deftest ^:integration test-acked-message-still-gets-deleted
+  (let [sense-id "sense1"
+        delete-after-seconds 1 ; Make this really short for testing
+        config (assoc-in (get-config) [:redis :delete-after-seconds] delete-after-seconds)
+        message-store (get-message-store config)
+        message (pb/message {:sender-id "test"
+                             :order 100
+                             :type (pb/message-type :play-audio)})
+        message-with-id (db/create-message message-store sense-id message)
+        id (.getMessageId message-with-id)]
+    (Thread/sleep (* delete-after-seconds 2 1000)) ; Wait for message to be deleted
+    (is
+      (nil? (db/get-status message-store id))
+      "Message should be deleted after waiting for delete-after-seconds")
+    (db/acknowledge message-store [id]) ; Should do nothing since message is gone.
+    (is
+      (nil? (db/get-status message-store id))
+      "Message should still be deleted even after acknowledging.")
+    (tear-down config)))
