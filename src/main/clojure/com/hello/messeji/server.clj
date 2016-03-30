@@ -5,6 +5,7 @@
     [byte-streams :as bs]
     [clojure.java.io :as io]
     [clojure.pprint :refer [pprint]]
+    [clojure.string :as string]
     [clojure.tools.logging :as log]
     [com.hello.messeji
       [config :as messeji-config]
@@ -108,11 +109,14 @@
 
 (defn- ack-and-receive
   [connections message-store timeout receive-message-request key]
-  (let [message-ids (acked-message-ids receive-message-request)]
+  (let [message-ids (acked-message-ids receive-message-request)
+        sense-id (.getSenseId receive-message-request)]
     (metrics/mark "server.acked-messages" (count message-ids))
     (when (seq message-ids)
+      (log/infof "fn=ack-and-receive sense-id=%s received-messages=%s"
+        sense-id (string/join ":" message-ids))
       (db/acknowledge message-store message-ids))
-    (receive-messages connections message-store timeout (.getSenseId receive-message-request) key)))
+    (receive-messages connections message-store timeout sense-id key)))
 
 (defn- parse-receive-request
   [request-bytes]
