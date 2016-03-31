@@ -49,7 +49,7 @@ The protobuf can be found in our [proto repository](https://github.com/hello/pro
 
 To compile the protobuf files (after they've changed):
 ```bash
-protoc -I messeji/  --java_out=/path/to/messeji/src/main/java/ messeji/*
+protoc -I messeji/  --java_out=/path/to/messeji/src/main/java/ messeji/*.proto
 ```
 
 
