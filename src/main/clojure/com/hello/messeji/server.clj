@@ -10,6 +10,7 @@
     [com.hello.messeji
       [config :as messeji-config]
       [db :as db]
+      [kinesis :as kinesis]
       [metrics :as metrics]
       [middleware :as middleware]
       [protobuf :as pb]
@@ -126,12 +127,13 @@
       (middleware/throw-invalid-request e))))
 
 (defn handle-receive
-  [connections key-store message-store timeout request]
+  [connections key-store message-store timeout request-log-producer request]
   (let [sense-id (request-sense-id request)
         signed-message (-> request :body bs/to-byte-array parse-receive-request)
         receive-message-request (pb/receive-message-request
                                   (.body signed-message))
         key (get-key-or-throw key-store sense-id)]
+    (kinesis/put-request request-log-producer sense-id receive-message-request)
     (when-not (= sense-id (.getSenseId receive-message-request))
       (middleware/throw-invalid-request
         (str "Sense ID in header is " sense-id
@@ -155,13 +157,14 @@
       delivery)))
 
 (defn handle-send
-  [message-store request pubsub-conn-opts]
+  [message-store request-log-producer request pubsub-conn-opts]
   (log/infof "endpoint=send sense-id=%s" (request-sense-id request))
   (let [sense-id (request-sense-id request)
         message (pb/message (:body request))
         _ (log/infof "endpoint=send sense-id=%s message-type=%s order=%s"
             sense-id (.getType message) (.getOrder message))
         message-with-id (db/create-message message-store sense-id message)]
+    (kinesis/put-request request-log-producer sense-id message)
     (log/infof "endpoint=send sense-id=%s message-id=%s"
       sense-id (.getMessageId message-with-id))
     (pubsub/publish pubsub-conn-opts sense-id message-with-id)
@@ -210,20 +213,21 @@
 
 (defn receive-handler
   "Request handler for the subscriber (receive) endpoints."
-  [connections key-store message-store timeout]
+  [connections key-store message-store timeout request-log-producer]
   (let [routes
         (mk-routes
           (POST "/receive" request
-            (handle-receive-timed connections key-store message-store timeout request)))]
+            (handle-receive-timed connections key-store message-store timeout
+                                  request-log-producer request)))]
     (wrap-routes routes)))
 
 (defn publish-handler
   "Request handler for the publish (send) endpoints."
-  [message-store pubsub-conn-opts]
+  [message-store pubsub-conn-opts request-log-producer]
   (let [routes
         (mk-routes
           (POST "/send" request
-            (handle-send-timed message-store request pubsub-conn-opts))
+            (handle-send-timed message-store request-log-producer request pubsub-conn-opts))
           (GET "/status/:message-id" [message-id]
             (handle-status-timed message-store message-id)))]
     (wrap-routes routes)))
@@ -273,6 +277,7 @@
                         (withMaxConnections 1000))
         ks-ddb-client (doto (AmazonDynamoDBClient. credentials-provider client-config)
                         (.setEndpoint (get-in config-map [:key-store :endpoint])))
+        request-log-producer (kinesis/stream-producer (get-in config-map [:request-log :stream]))
         key-store (ksddb/key-store
                     (get-in config-map [:key-store :table])
                     ks-ddb-client)
@@ -283,11 +288,12 @@
                         (:max-message-age-millis config-map)
                         (get-in config-map [:redis :delete-after-seconds]))
         listener (pubsub/subscribe redis-spec (pubsub-handler connections message-store))
+        ;; TODO just passing the Service into each handler would be cleaner.
         pub-server (http/start-server
-                    (publish-handler message-store {:spec redis-spec})
+                    (publish-handler message-store {:spec redis-spec} request-log-producer)
                     {:port (get-in config-map [:http :pub-port])})
         sub-server (http/start-server
-                    (receive-handler connections key-store message-store timeout)
+                    (receive-handler connections key-store message-store timeout request-log-producer)
                     {:port (get-in config-map [:http :sub-port])})
         graphite-config (:graphite config-map)
         reporter (if (:enabled? graphite-config)

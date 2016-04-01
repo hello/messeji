@@ -16,6 +16,7 @@
    :redis {:spec {s/Keyword s/Any} ;; See documentation for carmine/wcar spec
            :delete-after-seconds s/Int}
    :max-message-age-millis s/Int
+   :request-log {:stream s/Str}
    :graphite {:host s/Str
               :api-key s/Str
               :port s/Int
