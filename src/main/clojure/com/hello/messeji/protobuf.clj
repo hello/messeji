@@ -8,7 +8,9 @@
       Messeji$MessageStatus$State
       Messeji$ReceiveMessageRequest
       AudioCommands$PlayAudio
-      AudioCommands$StopAudio]
+      AudioCommands$StopAudio
+      Logging$RequestLog
+      Logging$RequestLog$Type]
     [java.io InputStream]))
 
 
@@ -25,6 +27,8 @@
 
   (stop-audio ^AudioCommands$StopAudio [this]))
 
+(defprotocol LoggingProtobuf
+  (request-log ^Logging$RequestLog [this]))
 
 ;; Maps (message {:sender-id "sender1", ...})
 (extend-type clojure.lang.IPersistentMap
@@ -80,7 +84,17 @@
     [{:keys [fade-out-duration-seconds]}]
     (.. (AudioCommands$StopAudio/newBuilder)
       (setFadeOutDurationSeconds fade-out-duration-seconds)
-      build)))
+      build))
+
+  LoggingProtobuf
+  (request-log
+    [{:keys [type timestamp message-request receive-message-request]}]
+    (cond-> (Logging$RequestLog/newBuilder)
+      timestamp (.setTimestamp timestamp)
+      type (.setType type)
+      message-request (.setMessageRequest message-request)
+      receive-message-request (.setReceiveMessageRequest receive-message-request)
+      :always .build)))
 
 
 ;; byte[]
@@ -151,3 +165,26 @@
    :sent Messeji$MessageStatus$State/SENT
    :received Messeji$MessageStatus$State/RECEIVED
    :expired Messeji$MessageStatus$State/EXPIRED})
+
+(def request-log-type
+  "Map of keywords to RequestLog.Type objects."
+  {:message Logging$RequestLog$Type/MESSAGE
+   :receive-message-request Logging$RequestLog$Type/RECEIVE_MESSAGE_REQUEST})
+
+
+(defn- timestamp [] (System/currentTimeMillis))
+
+(extend-protocol LoggingProtobuf
+  Messeji$Message
+  (request-log
+    [message]
+    (request-log {:message-request message
+                  :type (:message request-log-type)
+                  :timestamp (timestamp)}))
+
+  Messeji$ReceiveMessageRequest
+  (request-log
+    [rmr]
+    (request-log {:receive-message-request rmr
+                  :type (:receive-message-request request-log-type)
+                  :timestamp (timestamp)})))

@@ -15,4 +15,6 @@
             :env "staging"
             :period 30
             :enabled? true}
+ :request-log {:stream "dev_messeji_requests"
+               :log-level "info"}
  :max-message-age-millis 10000}

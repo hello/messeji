@@ -15,4 +15,6 @@
                 :port 6379
                 :db 0}
          :delete-after-seconds 60}
+ :request-log {:stream "dev_messeji_requests"
+               :log-level "warning"}
  :max-message-age-millis 10000}
