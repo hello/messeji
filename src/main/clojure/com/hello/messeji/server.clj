@@ -243,7 +243,7 @@
 
 ;; Wrapper for service state.
 (defrecord Service
-  [config connections pub-server sub-server listener metric-reporter data-stores]
+  [config connections pub-server sub-server listener metric-reporter data-stores request-log-producer]
   java.io.Closeable
   (close [this]
     ;; Calls NioEventLoopGroup.shutdownGracefully()
@@ -277,7 +277,9 @@
                         (withMaxConnections 1000))
         ks-ddb-client (doto (AmazonDynamoDBClient. credentials-provider client-config)
                         (.setEndpoint (get-in config-map [:key-store :endpoint])))
-        request-log-producer (kinesis/stream-producer (get-in config-map [:request-log :stream]))
+        request-log-producer (kinesis/stream-producer
+                              (get-in config-map [:request-log :stream])
+                              (get-in config-map [:request-log :log-level]))
         key-store (ksddb/key-store
                     (get-in config-map [:key-store :table])
                     ks-ddb-client)
@@ -311,7 +313,8 @@
       listener
       reporter
       {:key-store key-store
-       :message-store message-store})))
+       :message-store message-store}
+      request-log-producer)))
 
 (defn- shutdown-handler
   [^Service service]

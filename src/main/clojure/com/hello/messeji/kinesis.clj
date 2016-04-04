@@ -10,10 +10,11 @@
     [java.nio ByteBuffer]))
 
 (defn stream-producer
-  [stream-name]
+  [stream-name log-level]
   {:producer (KinesisProducer.
                (.. (KinesisProducerConfiguration.)
-                (setRegion "us-east-1")))
+                (setRegion "us-east-1")
+                (setLogLevel log-level)))
    :stream-name stream-name})
 
 (defn put-request

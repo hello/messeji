@@ -16,7 +16,9 @@
    :redis {:spec {s/Keyword s/Any} ;; See documentation for carmine/wcar spec
            :delete-after-seconds s/Int}
    :max-message-age-millis s/Int
-   :request-log {:stream s/Str}
+   :request-log {:stream s/Str  ; Kinesis stream name to use
+                 ;; Log level for the KinesisProducer. Should be info|warning|error
+                 :log-level s/Str}
    :graphite {:host s/Str
               :api-key s/Str
               :port s/Int
