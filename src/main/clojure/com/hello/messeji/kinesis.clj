@@ -19,5 +19,5 @@
 
 (defn put-request
   [{:keys [producer stream-name]} sense-id ^LoggingProtobuf request]
-  (let [data (-> request pb/request-log .toByteArray ByteBuffer/wrap)]
+  (let [data (-> request (pb/request-log sense-id) .toByteArray ByteBuffer/wrap)]
     (.addUserRecord ^KinesisProducer producer stream-name sense-id data)))

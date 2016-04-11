@@ -28,7 +28,8 @@
   (stop-audio ^AudioCommands$StopAudio [this]))
 
 (defprotocol LoggingProtobuf
-  (request-log ^Logging$RequestLog [this]))
+  (request-log ^Logging$RequestLog
+    [this] [this sense-id]))
 
 ;; Maps (message {:sender-id "sender1", ...})
 (extend-type clojure.lang.IPersistentMap
@@ -88,12 +89,13 @@
 
   LoggingProtobuf
   (request-log
-    [{:keys [type timestamp message-request receive-message-request]}]
+    [{:keys [type timestamp message-request receive-message-request sense-id]}]
     (cond-> (Logging$RequestLog/newBuilder)
       timestamp (.setTimestamp timestamp)
       type (.setType type)
       message-request (.setMessageRequest message-request)
       receive-message-request (.setReceiveMessageRequest receive-message-request)
+      sense-id (.setSenseId sense-id)
       :always .build)))
 
 
@@ -177,14 +179,16 @@
 (extend-protocol LoggingProtobuf
   Messeji$Message
   (request-log
-    [message]
+    [message sense-id]
     (request-log {:message-request message
                   :type (:message request-log-type)
-                  :timestamp (timestamp)}))
+                  :timestamp (timestamp)
+                  :sense-id sense-id}))
 
   Messeji$ReceiveMessageRequest
   (request-log
-    [rmr]
+    [rmr sense-id]
     (request-log {:receive-message-request rmr
                   :type (:receive-message-request request-log-type)
-                  :timestamp (timestamp)})))
+                  :timestamp (timestamp)
+                  :sense-id sense-id})))
