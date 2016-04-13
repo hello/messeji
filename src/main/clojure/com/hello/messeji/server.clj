@@ -70,7 +70,7 @@
 
 (defn- receive-messages
   [connections-atom message-store timeout sense-id key]
-  (if-let [unacked-messages (seq (db/unacked-messages message-store sense-id))]
+  (if-let [unacked-messages (metrics/time "server.db-unacked-messages" (seq (db/unacked-messages message-store sense-id)))]
     (do
       (log/infof "fn=receive-messages sense-id=%s unacked-messages-count=%s"
         sense-id (count unacked-messages))
@@ -102,7 +102,7 @@
 
 (defn- get-key-or-throw
   [key-store sense-id]
-  (let [key (db/get-key key-store sense-id)]
+  (let [key (metrics/time "server.db-get-key" (db/get-key key-store sense-id))]
     (when-not key
       (log/error "Key not found for sense-id" sense-id)
       (middleware/throw-invalid-request))
@@ -116,7 +116,7 @@
     (when (seq message-ids)
       (log/infof "fn=ack-and-receive sense-id=%s received-messages=%s"
         sense-id (string/join ":" message-ids))
-      (db/acknowledge message-store message-ids))
+      (metrics/time "server.db-acknowledge" (db/acknowledge message-store message-ids)))
     (receive-messages connections message-store timeout sense-id key)))
 
 (defn- parse-receive-request
