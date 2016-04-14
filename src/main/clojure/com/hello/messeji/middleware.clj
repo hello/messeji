@@ -14,6 +14,10 @@
   {:status 400
    :body ""})
 
+(defn- sense-id
+  [request]
+  (-> request :headers (get "X-Hello-Sense-Id")))
+
 (defn wrap-protobuf-request
   "Catch parsing errors from deserializing protobuf requests."
   [handler]
@@ -42,7 +46,10 @@
       (handler request)
       (catch clojure.lang.ExceptionInfo e
         (if (= ::invalid-request (-> e ex-data ::type))
-          response-400
+          (do
+            (log/errorf "error=invalid-request sense-id=%s uri=%s ip=%s"
+              (sense-id request) (:uri request) (:remote-addr request))
+            response-400)
           (throw e))))))
 
 (defn wrap-500
@@ -52,7 +59,8 @@
     (try
       (handler request)
       (catch Exception e
-        (log/error e)
+        (log/errorf "error=uncaught-exception sense-id=%s uri=%s ip=%s exception=%s"
+          (sense-id request) (:uri request) (:remote-addr request) e)
         (metrics/mark "middleware.errors")
         {:status 500
          :body ""}))))
@@ -82,7 +90,7 @@
   "Throw an invalid request exception that will be caught by `wrap-invalid-request`
   and rethrown as a 400 error."
   ([reason]
-    (log/info "Invalid request: " reason)
+    (log/debug "Invalid request: " reason)
     (throw-invalid-request))
   ([]
     (metrics/mark "middleware.invalid-request")

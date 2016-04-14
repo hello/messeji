@@ -119,17 +119,16 @@
       (metrics/time "server.db-acknowledge" (db/acknowledge message-store message-ids)))
     (receive-messages connections message-store timeout sense-id key)))
 
-(defn- parse-receive-request
-  [request-bytes]
-  (try
-    (SignedMessage/parse request-bytes)
-    (catch RuntimeException e
-      (middleware/throw-invalid-request e))))
-
 (defn handle-receive
   [connections key-store message-store timeout request-log-producer request]
   (let [sense-id (request-sense-id request)
-        signed-message (-> request :body bs/to-byte-array parse-receive-request)
+        request-bytes (-> request :body bs/to-byte-array)
+        signed-message (try
+                        (SignedMessage/parse request-bytes)
+                        (catch RuntimeException e
+                          (log/errorf "error=RuntimeException sense-id=%s method=SignedMessage/parse"
+                            sense-id)
+                          (middleware/throw-invalid-request e)))
         receive-message-request (pb/receive-message-request
                                   (.body signed-message))
         key (get-key-or-throw key-store sense-id)]
