@@ -122,6 +122,7 @@
 (defn handle-receive
   [connections key-store message-store timeout request-log-producer request]
   (let [sense-id (request-sense-id request)
+        _ (log/infof "endpoint=receive sense-id=%s" sense-id)
         request-bytes (-> request :body bs/to-byte-array)
         signed-message (try
                         (SignedMessage/parse request-bytes)
