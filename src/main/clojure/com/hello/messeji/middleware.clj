@@ -3,7 +3,7 @@
     [byte-streams :as bs]
     [clojure.tools.logging :as log]
     [com.hello.messeji.metrics :as metrics]
-    [manifold.deferred :refer [let-flow]]
+    [manifold.deferred :as d :refer [let-flow]]
     [ring.middleware.content-type :refer [content-type-response]])
   (:import
     [com.google.protobuf
@@ -37,33 +37,31 @@
         (assoc response :body (.toByteArray body))
         response))))
 
-(defn wrap-invalid-request
+(defn wrap-exception
   "When an invalid request is thrown (see `throw-invalid-request`),
-  it will be caught and turned into a 400 response."
-  [handler]
-  (fn [request]
-    (try
-      (handler request)
-      (catch clojure.lang.ExceptionInfo e
-        (if (= ::invalid-request (-> e ex-data ::type))
-          (do
-            (log/errorf "error=invalid-request sense-id=%s uri=%s ip=%s"
-              (sense-id request) (:uri request) (:remote-addr request))
-            response-400)
-          (throw e))))))
+  it will be caught and turned into a 400 response.
 
-(defn wrap-500
-  "Return a generic 500 message to client instead of an exception trace."
+  In case of exception, return a generic 500 message to client instead of an exception trace."
   [handler]
   (fn [request]
-    (try
-      (handler request)
-      (catch Exception e
-        (log/errorf "error=uncaught-exception sense-id=%s uri=%s ip=%s exception=%s"
-          (sense-id request) (:uri request) (:remote-addr request) e)
-        (metrics/mark "middleware.errors")
-        {:status 500
-         :body ""}))))
+    ;; Need to use manifold chain/catch here because handler could return a deferred.
+    (->  request
+      (d/chain handler)
+      (d/catch clojure.lang.ExceptionInfo
+        (fn [e]
+          (if (= ::invalid-request (-> e ex-data ::type))
+            (do
+              (log/errorf "error=invalid-request sense-id=%s uri=%s ip=%s"
+                (sense-id request) (:uri request) (:remote-addr request))
+              response-400)
+            (throw e))))
+      (d/catch
+        (fn [e]
+          (log/errorf "error=uncaught-exception sense-id=%s uri=%s ip=%s exception=%s"
+            (sense-id request) (:uri request) (:remote-addr request) e)
+          (metrics/mark "middleware.errors")
+          {:status 500
+           :body ""})))))
 
 (defn wrap-log-request
   "Log all request bodies."

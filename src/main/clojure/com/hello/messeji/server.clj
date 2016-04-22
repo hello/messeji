@@ -202,9 +202,8 @@
        middleware/wrap-log-request
        middleware/wrap-protobuf-request
        middleware/wrap-protobuf-response
-       middleware/wrap-invalid-request
        middleware/wrap-content-type
-       middleware/wrap-500))
+       middleware/wrap-exception))
 
  ;; Define timed versions of all the handlers.
  (metrics/deftimed handle-send-timed server handle-send)
@@ -239,7 +238,11 @@
   (fn [sense-id message]
     ;; TODO see if message already delivered?
     ;; TODO do not want to do this in subscribing thread...
-    (send-messages message-store (@connections-atom sense-id) [message])))
+    (try
+      (send-messages message-store (@connections-atom sense-id) [message])
+      (catch Exception e
+        (log/errorf "error=uncaught-exception fn=pubsub-handler sense-id=%s exception=%s"
+          sense-id e)))))
 
 ;; Wrapper for service state.
 (defrecord Service
