@@ -26,7 +26,9 @@
     [com.amazonaws ClientConfiguration]
     [com.amazonaws.auth DefaultAWSCredentialsProviderChain]
     [com.amazonaws.services.dynamodbv2 AmazonDynamoDBClient]
-    [com.hello.messeji SignedMessage]
+    [com.hello.messeji
+      SignedMessage
+      SignedMessage$Error]
     [com.hello.messeji.api
       Messeji$ReceiveMessageRequest
       Messeji$Message
@@ -93,11 +95,12 @@
   (seq (.getMessageReadIdList receive-message-request)))
 
 (defn- valid-key?
-  [signed-message key]
+  [^SignedMessage signed-message key]
   (let [error-optional (.validateWithKey signed-message key)
         error? (.isPresent error-optional)]
     (when error?
-      (log/error (-> error-optional .get .message)))
+      (let [error (.get error-optional)]
+        (log/error (.message ^SignedMessage$Error error))))
     (not error?)))
 
 (defn- get-key-or-throw
@@ -111,7 +114,7 @@
 (defn- ack-and-receive
   [connections message-store timeout receive-message-request key]
   (let [message-ids (acked-message-ids receive-message-request)
-        sense-id (.getSenseId receive-message-request)]
+        sense-id (.getSenseId ^Messeji$ReceiveMessageRequest receive-message-request)]
     (metrics/mark "server.acked-messages" (count message-ids))
     (when (seq message-ids)
       (log/infof "fn=ack-and-receive sense-id=%s received-messages=%s"
