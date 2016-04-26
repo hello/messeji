@@ -79,11 +79,11 @@
         (log/infof "fn=receive-messages sense-id=%s unacked-messages-count=%s"
           sense-id (count unacked-messages))
         (mark-sent message-store unacked-messages)
-        (batch-message-response key unacked-messages))
+        unacked-messages)
       (deferred/timeout!
         deferred-response
         timeout
-        (batch-message-response key [])))))
+        []))))
 
 (defn- request-sense-id
   [request]
@@ -142,7 +142,9 @@
         (str "Sense ID in header is " sense-id
              " but in body is " (.getSenseId receive-message-request))))
     (if (valid-key? signed-message key)
-      (ack-and-receive connections message-store timeout receive-message-request key)
+      (deferred/chain
+        (ack-and-receive connections message-store timeout receive-message-request key)
+        (partial batch-message-response key))
       {:status 401, :body ""})))
 
 (defn- send-messages
@@ -151,7 +153,7 @@
              (not (deferred/realized? deferred-response)))
     (when-let [delivery (deferred/success!
                           deferred-response
-                          (batch-message-response key messages))]
+                          messages)]
       (log/infof "fn=send-messages sense-id=%s delivered-messages-count=%s"
         sense-id (count messages))
       ;; If delivery is true, then we haven't previously delivered anything
