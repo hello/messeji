@@ -72,14 +72,14 @@
 
 (defn- receive-messages
   [connections-atom message-store timeout sense-id key]
-  (if-let [unacked-messages (metrics/time "server.db-unacked-messages" (seq (db/unacked-messages message-store sense-id)))]
-    (do
-      (log/infof "fn=receive-messages sense-id=%s unacked-messages-count=%s"
-        sense-id (count unacked-messages))
-      (mark-sent message-store unacked-messages)
-      (batch-message-response key unacked-messages))
-    (let [deferred-response (deferred/deferred)]
-      (swap! connections-atom assoc sense-id (deferred-connection deferred-response sense-id key))
+  (let [deferred-response (deferred/deferred)]
+    (swap! connections-atom assoc sense-id (deferred-connection deferred-response sense-id key))
+    (if-let [unacked-messages (metrics/time "server.db-unacked-messages" (seq (db/unacked-messages message-store sense-id)))]
+      (do
+        (log/infof "fn=receive-messages sense-id=%s unacked-messages-count=%s"
+          sense-id (count unacked-messages))
+        (mark-sent message-store unacked-messages)
+        (batch-message-response key unacked-messages))
       (deferred/timeout!
         deferred-response
         timeout
