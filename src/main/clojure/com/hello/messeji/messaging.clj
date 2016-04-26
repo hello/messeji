@@ -10,8 +10,6 @@
   (:import
     [com.hello.messeji.api Messeji$Message]))
 
-(defrecord SenseConnection [deferred-response sense-id])
-
 (defn- mark-sent
   [message-store messages]
   (db/mark-sent
@@ -19,19 +17,17 @@
     (map #(.getMessageId ^Messeji$Message %) messages)))
 
 (defn receive-messages
-  [connections-atom message-store timeout sense-id]
-  (let [deferred-response (d/deferred)]
-    (swap! connections-atom assoc sense-id (->SenseConnection deferred-response sense-id))
-    (if-let [unacked-messages (metrics/time "db-unacked-messages" (seq (db/unacked-messages message-store sense-id)))]
-      (do
-        (log/infof "fn=receive-messages sense-id=%s unacked-messages-count=%s"
-          sense-id (count unacked-messages))
-        (mark-sent message-store unacked-messages)
-        unacked-messages)
-      (d/timeout!
-        deferred-response
-        timeout
-        []))))
+  [response-deferred message-store timeout sense-id]
+  (if-let [unacked-messages (metrics/time "db-unacked-messages" (seq (db/unacked-messages message-store sense-id)))]
+    (do
+      (log/infof "fn=receive-messages sense-id=%s unacked-messages-count=%s"
+        sense-id (count unacked-messages))
+      (mark-sent message-store unacked-messages)
+      unacked-messages)
+    (d/timeout!
+      response-deferred
+      timeout
+      [])))
 
 (defn ack-messages
   [message-store acked-message-ids sense-id]
@@ -42,11 +38,11 @@
     (metrics/time "db-acknowledge" (db/acknowledge message-store acked-message-ids))))
 
 (defn send-messages
-  [message-store {:keys [deferred-response sense-id]} messages]
-  (when (and deferred-response
-             (not (d/realized? deferred-response)))
+  [message-store response-deferred sense-id messages]
+  (when (and response-deferred
+             (not (d/realized? response-deferred)))
     (when-let [delivery (d/success!
-                          deferred-response
+                          response-deferred
                           messages)]
       (log/infof "fn=send-messages sense-id=%s delivered-messages-count=%s"
         sense-id (count messages))

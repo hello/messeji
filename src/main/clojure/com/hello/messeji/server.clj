@@ -105,10 +105,11 @@
         (str "Sense ID in header is " sense-id
              " but in body is " (.getSenseId receive-message-request))))
     (if (valid-key? signed-message key)
-      (do
+      (let [response-deferred (deferred/deferred)]
         (messaging/ack-messages message-store (acked-message-ids receive-message-request) sense-id)
+        (swap! connections assoc sense-id response-deferred)
         (deferred/chain
-          (messaging/receive-messages connections message-store timeout sense-id)
+          (messaging/receive-messages response-deferred message-store timeout sense-id)
           (partial batch-message-response key)))
       {:status 401, :body ""})))
 
@@ -195,7 +196,7 @@
     ;; TODO see if message already delivered?
     ;; TODO do not want to do this in subscribing thread...
     (try
-      (messaging/send-messages message-store (@connections-atom sense-id) [message])
+      (messaging/send-messages message-store (@connections-atom sense-id) sense-id [message])
       (catch Exception e
         (log/errorf "error=uncaught-exception fn=pubsub-handler sense-id=%s exception=%s"
           sense-id e)))))
