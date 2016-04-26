@@ -11,6 +11,7 @@
       [config :as messeji-config]
       [db :as db]
       [kinesis :as kinesis]
+      [messaging :as messaging]
       [metrics :as metrics]
       [middleware :as middleware]
       [protobuf :as pb]
@@ -58,33 +59,6 @@
         (log/error "Failed signing message.")
         {:status 500 :body ""}))))
 
-(defn- mark-sent
-  [message-store messages]
-  (db/mark-sent
-    message-store
-    (map #(.getMessageId ^Messeji$Message %) messages)))
-
-(defn- deferred-connection
-  [deferred-response sense-id key]
-  {:deferred-response deferred-response
-   :sense-id sense-id
-   :key key})
-
-(defn- receive-messages
-  [connections-atom message-store timeout sense-id key]
-  (let [deferred-response (deferred/deferred)]
-    (swap! connections-atom assoc sense-id (deferred-connection deferred-response sense-id key))
-    (if-let [unacked-messages (metrics/time "server.db-unacked-messages" (seq (db/unacked-messages message-store sense-id)))]
-      (do
-        (log/infof "fn=receive-messages sense-id=%s unacked-messages-count=%s"
-          sense-id (count unacked-messages))
-        (mark-sent message-store unacked-messages)
-        unacked-messages)
-      (deferred/timeout!
-        deferred-response
-        timeout
-        []))))
-
 (defn- request-sense-id
   [request]
   (let [sense-id (-> request :headers (get "X-Hello-Sense-Id"))]
@@ -111,17 +85,6 @@
       (middleware/throw-invalid-request))
     key))
 
-(defn- ack-and-receive
-  [connections message-store timeout receive-message-request key]
-  (let [message-ids (acked-message-ids receive-message-request)
-        sense-id (.getSenseId ^Messeji$ReceiveMessageRequest receive-message-request)]
-    (metrics/mark "server.acked-messages" (count message-ids))
-    (when (seq message-ids)
-      (log/infof "fn=ack-and-receive sense-id=%s received-messages=%s"
-        sense-id (string/join ":" message-ids))
-      (metrics/time "server.db-acknowledge" (db/acknowledge message-store message-ids)))
-    (receive-messages connections message-store timeout sense-id key)))
-
 (defn handle-receive
   [connections key-store message-store timeout request-log-producer request]
   (let [sense-id (request-sense-id request)
@@ -142,24 +105,12 @@
         (str "Sense ID in header is " sense-id
              " but in body is " (.getSenseId receive-message-request))))
     (if (valid-key? signed-message key)
-      (deferred/chain
-        (ack-and-receive connections message-store timeout receive-message-request key)
-        (partial batch-message-response key))
+      (do
+        (messaging/ack-messages message-store (acked-message-ids receive-message-request) sense-id)
+        (deferred/chain
+          (messaging/receive-messages connections message-store timeout sense-id)
+          (partial batch-message-response key)))
       {:status 401, :body ""})))
-
-(defn- send-messages
-  [message-store {:keys [deferred-response sense-id key]} messages]
-  (when (and deferred-response
-             (not (deferred/realized? deferred-response)))
-    (when-let [delivery (deferred/success!
-                          deferred-response
-                          messages)]
-      (log/infof "fn=send-messages sense-id=%s delivered-messages-count=%s"
-        sense-id (count messages))
-      ;; If delivery is true, then we haven't previously delivered anything
-      ;; and the connection hasn't yet been timed out.
-      (mark-sent message-store messages)
-      delivery)))
 
 (defn handle-send
   [message-store request-log-producer request pubsub-conn-opts]
@@ -244,7 +195,7 @@
     ;; TODO see if message already delivered?
     ;; TODO do not want to do this in subscribing thread...
     (try
-      (send-messages message-store (@connections-atom sense-id) [message])
+      (messaging/send-messages message-store (@connections-atom sense-id) [message])
       (catch Exception e
         (log/errorf "error=uncaught-exception fn=pubsub-handler sense-id=%s exception=%s"
           sense-id e)))))
