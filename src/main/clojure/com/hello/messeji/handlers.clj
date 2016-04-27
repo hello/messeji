@@ -63,7 +63,7 @@
     key))
 
 (defn handle-receive
-  [connections key-store message-store timeout request-log-producer request]
+  [connections key-store message-store request-log-producer request]
   (let [sense-id (request-sense-id request)
         _ (log/infof "endpoint=receive sense-id=%s" sense-id)
         request-bytes (-> request :body bs/to-byte-array)
@@ -82,11 +82,10 @@
         (str "Sense ID in header is " sense-id
              " but in body is " (.getSenseId receive-message-request))))
     (if (valid-key? signed-message key)
-      (let [response-deferred (deferred/deferred)]
+      (do
         (messaging/ack-messages message-store (acked-message-ids receive-message-request) sense-id)
-        (swap! connections assoc sense-id response-deferred)
         (deferred/chain
-          (messaging/receive-messages response-deferred message-store timeout sense-id)
+          (messaging/receive-messages connections message-store sense-id)
           (partial batch-message-response key)))
       {:status 401, :body ""})))
 
@@ -146,11 +145,11 @@
 
 (defn receive-handler
   "Request handler for the subscriber (receive) endpoints."
-  [connections key-store message-store timeout request-log-producer]
+  [connections key-store message-store request-log-producer]
   (let [routes
         (mk-routes
           (POST "/receive" request
-            (handle-receive-timed connections key-store message-store timeout
+            (handle-receive-timed connections key-store message-store
                                   request-log-producer request)))]
     (wrap-routes routes)))
 
@@ -168,12 +167,12 @@
 (defn pubsub-handler
   "Returns a function that takes a sense-id and message. This is invoked when a
   new subscribed message arrives."
-  [connections-atom message-store]
+  [connections message-store]
   (fn [sense-id message]
     ;; TODO see if message already delivered?
     ;; TODO do not want to do this in subscribing thread...
     (try
-      (messaging/send-messages message-store (@connections-atom sense-id) sense-id [message])
+      (messaging/send-messages message-store connections sense-id [message])
       (catch Exception e
         (log/errorf "error=uncaught-exception fn=pubsub-handler sense-id=%s exception=%s"
           sense-id e)))))
