@@ -25,7 +25,12 @@
 
   (respond [_ sense-id response]
     (when-let [response-deferred (@connections-atom sense-id)]
-      (d/success! response-deferred response))))
+      (d/success! response-deferred response)))
+
+
+  java.io.Closeable
+  (close [_]
+    (reset! connections-atom {})))
 
 (defn sense-connections
   "Return a new SenseConnections with a server timeout of `timeout` ms."

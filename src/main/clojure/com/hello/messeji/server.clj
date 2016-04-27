@@ -48,6 +48,7 @@
     (doseq [[_ store] data-stores]
       (.close store))
     (.close listener)
+    (.close connections)
     (when metric-reporter
       (.close metric-reporter))))
 
