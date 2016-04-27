@@ -1,4 +1,5 @@
 (ns com.hello.messeji.connection
+  "Abstraction for managing a bunch of sense connections."
   (:require
     [manifold.deferred :as d]))
 
