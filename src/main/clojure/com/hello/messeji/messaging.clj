@@ -1,4 +1,5 @@
 (ns com.hello.messeji.messaging
+  "Specific implementation logic of messaging."
   (:require
     [clojure.string :as string]
     [clojure.tools.logging :as log]

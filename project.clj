@@ -1,4 +1,4 @@
-(defproject com.hello/messeji "0.2.21-SNAPSHOT"
+(defproject com.hello/messeji "0.2.22-SNAPSHOT"
   :description "Async messaging service for communicating with Sense"
   :url "https://github.com/hello/messeji"
   :dependencies [[org.clojure/clojure "1.7.0"]
@@ -9,8 +9,8 @@
                  [com.amazonaws/amazon-kinesis-producer "0.10.2"]
                  [com.google.guava/guava "18.0"]
                  [com.google.protobuf/protobuf-java "2.6.1"]
-                 [io.dropwizard.metrics/metrics-core "3.1.0"]
-                 [io.dropwizard.metrics/metrics-graphite "3.1.0"]
+                 [io.dropwizard.metrics/metrics-core "3.1.2"]
+                 [io.dropwizard.metrics/metrics-graphite "3.1.2"]
                  [log4j/log4j "1.2.17" :exclusions [javax.mail/mail
                                                     javax.jms/jms
                                                     com.sun.jmdk/jmxtools

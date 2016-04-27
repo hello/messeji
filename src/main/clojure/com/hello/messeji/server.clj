@@ -1,4 +1,9 @@
 (ns com.hello.messeji.server
+  "The application lifecycle logic, setup/teardown connections, etc.
+  This is also the main runnable namespace for messeji-server.
+
+  Run with:
+  > lein run -m com.hello.messeji.server path/to/config.edn"
   (:gen-class)
   (:require
     [aleph.http :as http]
