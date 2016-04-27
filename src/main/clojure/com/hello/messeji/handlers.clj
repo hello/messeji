@@ -1,4 +1,6 @@
 (ns com.hello.messeji.handlers
+  "HTTP and pub/sub handler logic. Like a DropWizard resource.
+  Primarily deals with status codes, request/response parsing, key signatures."
   (:require
     [byte-streams :as bs]
     [clojure.tools.logging :as log]
