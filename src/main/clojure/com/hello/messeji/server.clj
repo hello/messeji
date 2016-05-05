@@ -11,6 +11,7 @@
     [clojure.tools.logging :as log]
     [com.hello.messeji
       [config :as messeji-config]
+      [connection :as conn]
       [handlers :as handlers]
       [kinesis :as kinesis]
       [metrics :as metrics]
@@ -47,9 +48,9 @@
     (doseq [[_ store] data-stores]
       (.close store))
     (.close listener)
+    (.close connections)
     (when metric-reporter
-      (.close metric-reporter))
-    (reset! connections nil)))
+      (.close metric-reporter))))
 
 (defn- configure-logging
   [{:keys [property-file-name properties]}]
@@ -64,8 +65,7 @@
   [config-map]
   (configure-logging (:logging config-map))
   (log/info "Starting server")
-  (let [connections (atom {})
-        credentials-provider (DefaultAWSCredentialsProviderChain.)
+  (let [credentials-provider (DefaultAWSCredentialsProviderChain.)
         client-config (.. (ClientConfiguration.)
                         (withConnectionTimeout 200)
                         (withMaxErrorRetry 1)
@@ -79,6 +79,7 @@
                     (get-in config-map [:key-store :table])
                     ks-ddb-client)
         timeout (get-in config-map [:http :receive-timeout])
+        connections (conn/sense-connections timeout)
         redis-spec (get-in config-map [:redis :spec])
         message-store (redis/mk-message-store
                         {:spec redis-spec}
@@ -90,7 +91,7 @@
                     (handlers/publish-handler message-store {:spec redis-spec} request-log-producer)
                     {:port (get-in config-map [:http :pub-port])})
         sub-server (http/start-server
-                    (handlers/receive-handler connections key-store message-store timeout request-log-producer)
+                    (handlers/receive-handler connections key-store message-store request-log-producer)
                     {:port (get-in config-map [:http :sub-port])})
         graphite-config (:graphite config-map)
         reporter (if (:enabled? graphite-config)
