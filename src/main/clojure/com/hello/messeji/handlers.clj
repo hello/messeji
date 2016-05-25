@@ -38,7 +38,7 @@
         (log/error "Failed signing message.")
         {:status 500 :body ""}))))
 
-(defn- request-sense-id
+(defn request-sense-id
   [request]
   (let [sense-id (-> request :headers (get "X-Hello-Sense-Id"))]
     (or sense-id (middleware/throw-invalid-request "No X-Hello-Sense-Id header."))))

@@ -29,7 +29,8 @@
   :java-source-paths ["src/main/java"]  ; Java source is stored separately.
   :resource-paths ["resources"]
   :main com.hello.messeji.server
-  :aot [com.hello.messeji.server]
+  :aot [com.hello.messeji.server
+        com.hello.messeji.experimental.websockets]
   :jvm-opts ["-server", "-Dlogfile.path=./log"]
   :profiles {:dev {:plugins [[com.hello/lein-deploy-uberjar "0.1.0"]]}}
   :test-selectors {:default (complement :integration)
