@@ -36,11 +36,13 @@
   (let [payload-wrapper (Proxy$PayloadWrapper/parseFrom (bs/to-byte-array message))
         url (condp = (.getType payload-wrapper)
               Proxy$PayloadWrapper$Type/RECEIVE_MESSAGES messeji-localhost
+              ;; TODO the other endpoints lol
               Proxy$PayloadWrapper$Type/BATCH "batch-url")]
     (d/chain
       (http/post
         url
-        {:body (.toByteArray (.getPayload payload-wrapper)), :headers {"X-Hello-Sense-Id" sense-id}})
+        {:body (.toByteArray (.getPayload payload-wrapper))
+         :headers {"X-Hello-Sense-Id" sense-id}})
       :body)))
 
 (defn dispatch-handler
@@ -75,6 +77,7 @@
     server))
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;; Client ;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -94,16 +97,19 @@
       build
       toByteArray)))
 
+(defn next-message
+  [client]
+  (d/chain
+    (s/take! client)
+    (fn [response]
+      (->> response
+        bs/to-byte-array
+        (drop (+ 16 32)) ;; drop injection vector and sig
+        byte-array
+        pb/batch-message))))
+
 (defn receive-messages
   [client sense-id key acked-message-ids]
   (let [request (signed-request sense-id key acked-message-ids)]
     (s/put! client request)
-    (d/chain
-      (s/take! client)
-      (fn [response]
-        (prn response)
-        (->> response
-          bs/to-byte-array
-          (drop (+ 16 32)) ;; drop injection vector and sig
-          byte-array
-          pb/batch-message)))))
+    (next-message client)))
