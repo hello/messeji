@@ -114,18 +114,26 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;; Client ;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defrecord Client [conn last-id]
+
+  java.io.Closeable
+  (close [_]
+    (.close conn)))
+
 (defn client
   [sense-id]
-  @(http/websocket-client "ws://localhost:11000/dispatch" {:headers {"X-Hello-Sense-Id" sense-id}}))
+  (map->Client
+    {:conn @(http/websocket-client "ws://localhost:11000/dispatch" {:headers {"X-Hello-Sense-Id" sense-id}})
+     :last-id (atom 0)}))
 
 (defn signed-request
-  [sense-id key acked-message-ids]
+  [sense-id key acked-message-ids id]
   (let [request-proto (pb/receive-message-request
                         {:sense-id sense-id
                          :message-read-ids acked-message-ids})
         signed-proto (client/sign-protobuf request-proto key)
-        ;; TODO increment the ID
-        wrapped (payload-wrapper signed-proto Proxy$PayloadWrapper$Type/RECEIVE_MESSAGES 0)]
+        wrapped (payload-wrapper signed-proto Proxy$PayloadWrapper$Type/RECEIVE_MESSAGES id)]
     (.toByteArray wrapped)))
 
 (defn parse-payload-wrapper
@@ -144,9 +152,9 @@
         pb/batch-message)))
 
 (defn next-message
-  [client]
+  [conn]
   (d/chain
-    (s/take! client)
+    (s/take! conn)
     (fn [response]
       (->> response
         bs/to-byte-array
@@ -154,7 +162,7 @@
         parse-payload-wrapper))))
 
 (defn receive-messages
-  [client sense-id key acked-message-ids]
-  (let [request (signed-request sense-id key acked-message-ids)]
-    (s/put! client request)
-    (next-message client)))
+  [{:keys [conn last-id]} sense-id key acked-message-ids]
+  (let [request (signed-request sense-id key acked-message-ids (swap! last-id inc))]
+    (s/put! conn request)
+    (next-message conn)))
