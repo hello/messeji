@@ -1,9 +1,16 @@
 option java_package = "com.hello.messeji.api.experimental";
 
 message PayloadWrapper {
-  enum Type { RECEIVE_MESSAGES = 1; BATCH = 2; }
+
+  enum Type {
+    RECEIVE_MESSAGES = 1;
+    BATCH = 2;
+    ERROR = 3;
+  }
 
   optional Type type = 1;
   optional bytes payload = 2;
   optional uint64 id = 3;
+  // TODO separate request and response wrappers
+  optional uint32 status_code = 4;
 }

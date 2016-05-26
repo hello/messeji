@@ -37,7 +37,15 @@
     (setId id)
     build))
 
-;; TODO error handling and pass errors down to client
+(defn error-response
+  ^bytes [status-code id]
+  (.. (Proxy$PayloadWrapper/newBuilder)
+    (setType Proxy$PayloadWrapper$Type/ERROR)
+    (setId id)
+    (setStatusCode status-code)
+    build
+    toByteArray))
+
 (defn dispatch-message-async
   [sense-id message]
   (prn message)
@@ -46,18 +54,29 @@
         url (condp = (.getType wrapper)
               Proxy$PayloadWrapper$Type/RECEIVE_MESSAGES messeji-localhost
               ;; TODO the other endpoints lol
-              Proxy$PayloadWrapper$Type/BATCH "batch-url")]
+              Proxy$PayloadWrapper$Type/BATCH "batch-url"
+              ;; And logs etc...
+              )]
     (prn payload-id)
-    (d/let-flow [response (http/post
-                            url
-                            {:body (.toByteArray (.getPayload wrapper))
-                             :headers {"X-Hello-Sense-Id" sense-id}})]
-      (prn response)
-      (-> response
-        :body
-        bs/to-byte-array
-        (payload-wrapper (.getType wrapper) payload-id)
-        .toByteArray))))
+    (->
+      (d/let-flow [response (http/post
+                              url
+                              {:body (.toByteArray (.getPayload wrapper))
+                               :headers {"X-Hello-Sense-Id" sense-id}})]
+        (prn response)
+        (-> response
+          :body
+          bs/to-byte-array
+          (payload-wrapper (.getType wrapper) payload-id)
+          .toByteArray))
+      (d/catch clojure.lang.ExceptionInfo
+        (fn [e]
+          (if-let [status-code (-> e .getData :status)]
+            (error-response status-code payload-id)
+            (error-response 500 payload-id))))
+      (d/catch Exception
+        (fn [e]
+          (error-response 500))))))
 
 (defn dispatch-handler
   [req]
@@ -105,8 +124,24 @@
                         {:sense-id sense-id
                          :message-read-ids acked-message-ids})
         signed-proto (client/sign-protobuf request-proto key)
+        ;; TODO increment the ID
         wrapped (payload-wrapper signed-proto Proxy$PayloadWrapper$Type/RECEIVE_MESSAGES 0)]
     (.toByteArray wrapped)))
+
+(defn parse-payload-wrapper
+  [^Proxy$PayloadWrapper payload-wrapper]
+  (condp = (.getType payload-wrapper)
+
+    Proxy$PayloadWrapper$Type/ERROR
+      (.getStatusCode payload-wrapper)
+
+    Proxy$PayloadWrapper$Type/RECEIVE_MESSAGES
+      (->> payload-wrapper
+        .getPayload
+        .toByteArray
+        (drop (+ 16 32)) ;; drop injection vector and sig
+        byte-array
+        pb/batch-message)))
 
 (defn next-message
   [client]
@@ -116,11 +151,7 @@
       (->> response
         bs/to-byte-array
         Proxy$PayloadWrapper/parseFrom
-        .getPayload
-        .toByteArray
-        (drop (+ 16 32)) ;; drop injection vector and sig
-        byte-array
-        pb/batch-message))))
+        parse-payload-wrapper))))
 
 (defn receive-messages
   [client sense-id key acked-message-ids]

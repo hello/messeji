@@ -38,6 +38,15 @@ public final class Proxy {
      * <code>optional uint64 id = 3;</code>
      */
     long getId();
+
+    /**
+     * <code>optional uint32 status_code = 4;</code>
+     */
+    boolean hasStatusCode();
+    /**
+     * <code>optional uint32 status_code = 4;</code>
+     */
+    int getStatusCode();
   }
   /**
    * Protobuf type {@code PayloadWrapper}
@@ -112,6 +121,11 @@ public final class Proxy {
               id_ = input.readUInt64();
               break;
             }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              statusCode_ = input.readUInt32();
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -164,6 +178,10 @@ public final class Proxy {
        * <code>BATCH = 2;</code>
        */
       BATCH(1, 2),
+      /**
+       * <code>ERROR = 3;</code>
+       */
+      ERROR(2, 3),
       ;
 
       /**
@@ -174,6 +192,10 @@ public final class Proxy {
        * <code>BATCH = 2;</code>
        */
       public static final int BATCH_VALUE = 2;
+      /**
+       * <code>ERROR = 3;</code>
+       */
+      public static final int ERROR_VALUE = 3;
 
 
       public final int getNumber() { return value; }
@@ -182,6 +204,7 @@ public final class Proxy {
         switch (value) {
           case 1: return RECEIVE_MESSAGES;
           case 2: return BATCH;
+          case 3: return ERROR;
           default: return null;
         }
       }
@@ -279,10 +302,26 @@ public final class Proxy {
       return id_;
     }
 
+    public static final int STATUS_CODE_FIELD_NUMBER = 4;
+    private int statusCode_;
+    /**
+     * <code>optional uint32 status_code = 4;</code>
+     */
+    public boolean hasStatusCode() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional uint32 status_code = 4;</code>
+     */
+    public int getStatusCode() {
+      return statusCode_;
+    }
+
     private void initFields() {
       type_ = com.hello.messeji.api.experimental.Proxy.PayloadWrapper.Type.RECEIVE_MESSAGES;
       payload_ = com.google.protobuf.ByteString.EMPTY;
       id_ = 0L;
+      statusCode_ = 0;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -306,6 +345,9 @@ public final class Proxy {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeUInt64(3, id_);
       }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeUInt32(4, statusCode_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -326,6 +368,10 @@ public final class Proxy {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt64Size(3, id_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(4, statusCode_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -450,6 +496,8 @@ public final class Proxy {
         bitField0_ = (bitField0_ & ~0x00000002);
         id_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000004);
+        statusCode_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
 
@@ -490,6 +538,10 @@ public final class Proxy {
           to_bitField0_ |= 0x00000004;
         }
         result.id_ = id_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.statusCode_ = statusCode_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -514,6 +566,9 @@ public final class Proxy {
         }
         if (other.hasId()) {
           setId(other.getId());
+        }
+        if (other.hasStatusCode()) {
+          setStatusCode(other.getStatusCode());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -644,6 +699,38 @@ public final class Proxy {
         return this;
       }
 
+      private int statusCode_ ;
+      /**
+       * <code>optional uint32 status_code = 4;</code>
+       */
+      public boolean hasStatusCode() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional uint32 status_code = 4;</code>
+       */
+      public int getStatusCode() {
+        return statusCode_;
+      }
+      /**
+       * <code>optional uint32 status_code = 4;</code>
+       */
+      public Builder setStatusCode(int value) {
+        bitField0_ |= 0x00000008;
+        statusCode_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint32 status_code = 4;</code>
+       */
+      public Builder clearStatusCode() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        statusCode_ = 0;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:PayloadWrapper)
     }
 
@@ -669,11 +756,12 @@ public final class Proxy {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\013proxy.proto\"z\n\016PayloadWrapper\022\"\n\004type\030" +
-      "\001 \001(\0162\024.PayloadWrapper.Type\022\017\n\007payload\030\002" +
-      " \001(\014\022\n\n\002id\030\003 \001(\004\"\'\n\004Type\022\024\n\020RECEIVE_MESS" +
-      "AGES\020\001\022\t\n\005BATCH\020\002B$\n\"com.hello.messeji.a" +
-      "pi.experimental"
+      "\n\013proxy.proto\"\232\001\n\016PayloadWrapper\022\"\n\004type" +
+      "\030\001 \001(\0162\024.PayloadWrapper.Type\022\017\n\007payload\030" +
+      "\002 \001(\014\022\n\n\002id\030\003 \001(\004\022\023\n\013status_code\030\004 \001(\r\"2" +
+      "\n\004Type\022\024\n\020RECEIVE_MESSAGES\020\001\022\t\n\005BATCH\020\002\022" +
+      "\t\n\005ERROR\020\003B$\n\"com.hello.messeji.api.expe" +
+      "rimental"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -692,7 +780,7 @@ public final class Proxy {
     internal_static_PayloadWrapper_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_PayloadWrapper_descriptor,
-        new java.lang.String[] { "Type", "Payload", "Id", });
+        new java.lang.String[] { "Type", "Payload", "Id", "StatusCode", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
