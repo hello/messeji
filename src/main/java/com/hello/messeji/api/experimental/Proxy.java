@@ -29,6 +29,15 @@ public final class Proxy {
      * <code>optional bytes payload = 2;</code>
      */
     com.google.protobuf.ByteString getPayload();
+
+    /**
+     * <code>optional uint64 id = 3;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional uint64 id = 3;</code>
+     */
+    long getId();
   }
   /**
    * Protobuf type {@code PayloadWrapper}
@@ -96,6 +105,11 @@ public final class Proxy {
             case 18: {
               bitField0_ |= 0x00000002;
               payload_ = input.readBytes();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              id_ = input.readUInt64();
               break;
             }
           }
@@ -250,9 +264,25 @@ public final class Proxy {
       return payload_;
     }
 
+    public static final int ID_FIELD_NUMBER = 3;
+    private long id_;
+    /**
+     * <code>optional uint64 id = 3;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional uint64 id = 3;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
     private void initFields() {
       type_ = com.hello.messeji.api.experimental.Proxy.PayloadWrapper.Type.RECEIVE_MESSAGES;
       payload_ = com.google.protobuf.ByteString.EMPTY;
+      id_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -273,6 +303,9 @@ public final class Proxy {
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeBytes(2, payload_);
       }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeUInt64(3, id_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -289,6 +322,10 @@ public final class Proxy {
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(2, payload_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(3, id_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -411,6 +448,8 @@ public final class Proxy {
         bitField0_ = (bitField0_ & ~0x00000001);
         payload_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000002);
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
 
@@ -447,6 +486,10 @@ public final class Proxy {
           to_bitField0_ |= 0x00000002;
         }
         result.payload_ = payload_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.id_ = id_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -468,6 +511,9 @@ public final class Proxy {
         }
         if (other.hasPayload()) {
           setPayload(other.getPayload());
+        }
+        if (other.hasId()) {
+          setId(other.getId());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -566,6 +612,38 @@ public final class Proxy {
         return this;
       }
 
+      private long id_ ;
+      /**
+       * <code>optional uint64 id = 3;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional uint64 id = 3;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional uint64 id = 3;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000004;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint64 id = 3;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:PayloadWrapper)
     }
 
@@ -591,11 +669,11 @@ public final class Proxy {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\013proxy.proto\"n\n\016PayloadWrapper\022\"\n\004type\030" +
+      "\n\013proxy.proto\"z\n\016PayloadWrapper\022\"\n\004type\030" +
       "\001 \001(\0162\024.PayloadWrapper.Type\022\017\n\007payload\030\002" +
-      " \001(\014\"\'\n\004Type\022\024\n\020RECEIVE_MESSAGES\020\001\022\t\n\005BA" +
-      "TCH\020\002B$\n\"com.hello.messeji.api.experimen" +
-      "tal"
+      " \001(\014\022\n\n\002id\030\003 \001(\004\"\'\n\004Type\022\024\n\020RECEIVE_MESS" +
+      "AGES\020\001\022\t\n\005BATCH\020\002B$\n\"com.hello.messeji.a" +
+      "pi.experimental"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -614,7 +692,7 @@ public final class Proxy {
     internal_static_PayloadWrapper_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_PayloadWrapper_descriptor,
-        new java.lang.String[] { "Type", "Payload", });
+        new java.lang.String[] { "Type", "Payload", "Id", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

@@ -29,21 +29,35 @@
 
 (def messeji-localhost "http://localhost:10000/receive")
 
+(defn payload-wrapper
+  ^Proxy$PayloadWrapper [^bytes payload ^Proxy$PayloadWrapper$Type type id]
+  (.. (Proxy$PayloadWrapper/newBuilder)
+    (setType type)
+    (setPayload (ByteString/copyFrom payload))
+    (setId id)
+    build))
+
 ;; TODO error handling and pass errors down to client
 (defn dispatch-message-async
   [sense-id message]
   (prn message)
-  (let [payload-wrapper (Proxy$PayloadWrapper/parseFrom (bs/to-byte-array message))
-        url (condp = (.getType payload-wrapper)
+  (let [wrapper (Proxy$PayloadWrapper/parseFrom (bs/to-byte-array message))
+        payload-id (.getId wrapper)
+        url (condp = (.getType wrapper)
               Proxy$PayloadWrapper$Type/RECEIVE_MESSAGES messeji-localhost
               ;; TODO the other endpoints lol
               Proxy$PayloadWrapper$Type/BATCH "batch-url")]
-    (d/chain
-      (http/post
-        url
-        {:body (.toByteArray (.getPayload payload-wrapper))
-         :headers {"X-Hello-Sense-Id" sense-id}})
-      :body)))
+    (prn payload-id)
+    (d/let-flow [response (http/post
+                            url
+                            {:body (.toByteArray (.getPayload wrapper))
+                             :headers {"X-Hello-Sense-Id" sense-id}})]
+      (prn response)
+      (-> response
+        :body
+        bs/to-byte-array
+        (payload-wrapper (.getType wrapper) payload-id)
+        .toByteArray))))
 
 (defn dispatch-handler
   [req]
@@ -90,12 +104,9 @@
   (let [request-proto (pb/receive-message-request
                         {:sense-id sense-id
                          :message-read-ids acked-message-ids})
-        signed-proto (client/sign-protobuf request-proto key)]
-    (.. (Proxy$PayloadWrapper/newBuilder)
-      (setType Proxy$PayloadWrapper$Type/RECEIVE_MESSAGES)
-      (setPayload (ByteString/copyFrom signed-proto))
-      build
-      toByteArray)))
+        signed-proto (client/sign-protobuf request-proto key)
+        wrapped (payload-wrapper signed-proto Proxy$PayloadWrapper$Type/RECEIVE_MESSAGES 0)]
+    (.toByteArray wrapped)))
 
 (defn next-message
   [client]
@@ -104,6 +115,9 @@
     (fn [response]
       (->> response
         bs/to-byte-array
+        Proxy$PayloadWrapper/parseFrom
+        .getPayload
+        .toByteArray
         (drop (+ 16 32)) ;; drop injection vector and sig
         byte-array
         pb/batch-message))))
