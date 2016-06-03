@@ -95,9 +95,22 @@
         (fn [_]
           non-websocket-request)))))
 
+(defn echo-handler
+  "This is another asynchronous handler, but uses `let-flow` instead of `chain` to define the
+   handler in a way that at least somewhat resembles the synchronous handler."
+  [req]
+  (->
+    (d/let-flow [socket (http/websocket-connection req)]
+      (s/connect socket socket))
+    (d/catch
+      (fn [_]
+        non-websocket-request))))
+
 (def handler
   (compojure/routes
-    (GET "/dispatch" req (dispatch-handler req))))
+    (GET "/dispatch" req (dispatch-handler req))
+    (GET "/echo" [] echo-handler)
+    (route/not-found "No such page.")))
 
 (defn start-server
   []
