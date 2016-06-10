@@ -3,7 +3,7 @@
   :url "https://github.com/hello/messeji"
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/tools.logging "0.3.1"]
-                 [aleph "0.4.1-beta2"]
+                 [aleph "0.4.1"]
                  [compojure "1.4.0"]
                  [com.amazonaws/aws-java-sdk-dynamodb "1.10.61"]
                  [com.amazonaws/amazon-kinesis-producer "0.10.2"]
