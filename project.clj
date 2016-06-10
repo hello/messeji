@@ -31,7 +31,6 @@
   :main com.hello.messeji.server
   :aot [com.hello.messeji.server]
   :jvm-opts ["-server", "-Dlogfile.path=./log"]
-  :profiles {:dev {:plugins [[com.hello/lein-deploy-uberjar "0.1.0"]]}}
   :test-selectors {:default (complement :integration)
                    :integration :integration
                    :all (constantly true)}
