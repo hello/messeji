@@ -30,6 +30,7 @@
   :resource-paths ["resources"]
   :main com.hello.messeji.server
   :aot [com.hello.messeji.server]
+  :profiles {:dev {:plugins [[com.hello/lein-deploy-uberjar "0.1.0"]]}}
   :jvm-opts ["-server", "-Dlogfile.path=./log"]
   :test-selectors {:default (complement :integration)
                    :integration :integration
