@@ -25,6 +25,7 @@
     [com.amazonaws ClientConfiguration]
     [com.amazonaws.auth DefaultAWSCredentialsProviderChain]
     [com.amazonaws.services.dynamodbv2 AmazonDynamoDBClient]
+    [java.util.concurrent Executors]
     [org.apache.log4j PropertyConfigurator]))
 
 ;; Compojure will normally dereference deferreds and return the realized value.
@@ -89,10 +90,12 @@
         ;; TODO just passing the Service into each handler would be cleaner.
         pub-server (http/start-server
                     (handlers/publish-handler message-store {:spec redis-spec} request-log-producer)
-                    {:port (get-in config-map [:http :pub-port])})
+                    {:port (get-in config-map [:http :pub-port])
+                     :executor (Executors/newFixedThreadPool 20)})
         sub-server (http/start-server
                     (handlers/receive-handler connections key-store message-store request-log-producer)
-                    {:port (get-in config-map [:http :sub-port])})
+                    {:port (get-in config-map [:http :sub-port])
+                     :executor (Executors/newFixedThreadPool 512)})
         graphite-config (:graphite config-map)
         reporter (if (:enabled? graphite-config)
                   (do ;; then
