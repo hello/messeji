@@ -53,6 +53,10 @@ protoc -I messeji/  --java_out=/path/to/messeji/src/main/java/ messeji/*.proto
 ```
 
 
+## Redis
+Messeji uses [Redis](http://redis.io/) for message storage and to do pub/sub. You'll need to download and run the redis server locally when testing, and ensure that it matches with your local configuration file.
+
+
 ## Client
 First, some setup: Require the client and define your sense and its key (to receive messages).
 **Note: Insert actual sense IDs and keys found in your `key_store` table or this won't work and you'll cry!**
