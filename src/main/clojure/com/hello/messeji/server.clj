@@ -66,6 +66,8 @@
   [config-map]
   (configure-logging (:logging config-map))
   (log/info "Starting server")
+  (log/infof "internal (publish): %s" (get-in config-map [:http :pub-port]))
+  (log/infof "external (subscribe): %s" (get-in config-map [:http :sub-port]))
   (let [credentials-provider (DefaultAWSCredentialsProviderChain.)
         client-config (.. (ClientConfiguration.)
                         (withConnectionTimeout 200)
