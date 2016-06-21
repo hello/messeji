@@ -106,4 +106,10 @@ Releasing a new debian package is easy.
 ./release.sh
 ```
 
-This will release the new version to our maven repository, upload the configs, and deploy the debian package. From there, it's all `sanders create/deploy/confirm/sunset` and you're golden.
+This will release the new version to our maven repository, upload the configs, and deploy the debian package. After this step, you can deploy to dev and then prod.
+
+### Dev deploy
+Run `scripts/deploy-dev.sh`. This will require you to have a `messeji-dev` entry in your ssh config.
+
+### Prod deploy
+For the prod deploy, it's all `sanders create/deploy/confirm/sunset` and you're golden.
