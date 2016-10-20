@@ -1,5 +1,5 @@
 {:key-store {:table "key_store"
-             :endpoint "http://localhost:7777"}
+             :endpoint "https://dynamodb.us-east-1.amazonaws.com"}
  :http {:sub-port 10000
         :pub-port 8000
         :receive-timeout 10000}
